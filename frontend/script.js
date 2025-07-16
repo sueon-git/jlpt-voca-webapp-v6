@@ -2,7 +2,7 @@
 let vocabularyData = [];
 let addedSets = new Set();
 let incorrectCounts = {};
-const API_BASE_URL = 'https://jlpt-vocab-api.onrender.com/api';
+const API_BASE_URL = 'https://jlpt-voca-webapp-v2.onrender.com/api';
 
 // --- 데이터 동기화 기능 ---
 async function loadDataFromServer() {

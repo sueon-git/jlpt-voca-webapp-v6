@@ -8,11 +8,11 @@ const port = 3000;
 const uri = "mongodb+srv://ghdtnsqls11:ghdtnsqls11@cluster0.7vvslpu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 const client = new MongoClient(uri);
 
-const dbName = 'jlpt-vocab-app';
+const dbName = 'jlpt-vocab-app-v2';
 const collectionName = 'data';
 
 const corsOptions = {
-  origin: 'https://my-vocab-app-sync.netlify.app',
+  origin: 'https://my-vocab-app-sync-v2.netlify.app/',
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
