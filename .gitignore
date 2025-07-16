@@ -1,0 +1,5 @@
+# 'node_modules' 폴더를 무시합니다.
+node_modules/
+
+# 백엔드의 'database.json' 파일도 개인 데이터이므로 무시합니다.
+backend/database.json
