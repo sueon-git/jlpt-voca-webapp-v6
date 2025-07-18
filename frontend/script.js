@@ -1,5 +1,5 @@
 let vocabularyData = [], addedSets = new Set(), incorrectCounts = {};
-const API_BASE_URL = 'https://jlpt-voca-webapp-v2.onrender.com/api';
+const API_BASE_URL = 'https://jlpt-voca-webapp-v3.onrender.com/api';
 
 async function loadDataFromServer() {
     try {
