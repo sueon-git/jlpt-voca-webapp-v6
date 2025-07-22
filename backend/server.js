@@ -12,7 +12,7 @@ const dbName = 'jlpt-vocab-app-v3';
 const collectionName = 'data';
 
 const corsOptions = {
-  origin: 'https://my-vocab-app-sync-v3.netlify.app',
+  origin: 'https://jlpt-voca-webapp-v3.netlify.app',
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
