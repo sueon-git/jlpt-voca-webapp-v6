@@ -8,11 +8,12 @@ const port = 3000;
 const uri = "mongodb+srv://ghdtnsqls11:ghdtnsqls11@cluster0.7vvslpu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 const client = new MongoClient(uri);
 
-const dbName = 'jlpt-vocab-app-v3';
-const collectionName = 'data';
+const dbName = 'jlpt-vocab-app-v3'; // v3용 데이터베이스 이름
+const userDataCollectionName = 'userdata'; // 사용자 학습 데이터
+const wordSetsCollectionName = 'wordsets'; // 단어 세트 원본 데이터
 
 const corsOptions = {
-  origin: 'https://jlpt-voca-webapp-v3.netlify.app',
+  origin: 'https://jlpt-voca-webapp-v3.netlify.app', // v3용 Netlify 주소
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
@@ -22,52 +23,89 @@ async function startServer() {
     try {
         await client.connect();
         console.log("MongoDB Atlas 데이터베이스에 성공적으로 연결되었습니다.");
-        const collection = client.db(dbName).collection(collectionName);
+        const db = client.db(dbName);
+        const userDataCollection = db.collection(userDataCollectionName);
+        const wordSetsCollection = db.collection(wordSetsCollectionName);
 
         // --- API 엔드포인트 ---
 
-        // ✨ [핵심 수정] GET 요청은 이제 절대로 데이터를 쓰지 않습니다.
-        app.get('/api/data', async (req, res) => {
+        // GET /api/userdata : 사용자 학습 데이터를 가져오는 API
+        app.get('/api/userdata', async (req, res) => {
             try {
-                const result = await collection.findOne({ _id: 'main' });
-                if (result && result.data) {
-                    res.json(result.data); // 데이터가 있으면 그대로 반환
-                } else {
-                    // 데이터가 없으면, 새로 만들지 않고 그냥 비어있는 상태를 반환
-                    res.json({ vocabularyData: [], addedSets: [], incorrectCounts: {} });
+                let result = await userDataCollection.findOne({ _id: 'main' });
+                if (!result) {
+                    const initialData = { vocabularyData: [], addedSets: [], incorrectCounts: {} };
+                    await userDataCollection.insertOne({ _id: 'main', data: initialData });
+                    result = { data: initialData };
                 }
-            } catch (e) {
-                res.status(500).json({ message: "DB 조회 오류" });
-            }
+                res.json(result.data);
+            } catch (e) { res.status(500).json({ message: "사용자 데이터 조회 오류" }); }
         });
 
-        // ✨ [핵심 수정] 데이터가 없을 경우, POST 요청이 처음으로 데이터를 생성합니다.
-        app.post('/api/data/replace', async (req, res) => {
+        // GET /api/wordsets : 추가 가능한 모든 단어 세트 목록을 가져오는 API
+        app.get('/api/wordsets', async (req, res) => {
             try {
-                const newData = req.body;
-                // upsert: true 옵션 덕분에 _id: 'main' 문서가 없으면 새로 생성해줍니다.
-                await collection.updateOne(
-                    { _id: 'main' },
-                    { $set: { data: newData } },
-                    { upsert: true }
-                );
-                res.status(200).json({ message: '데이터 교체 성공' });
-            } catch (e) {
-                res.status(500).json({ message: "데이터 교체 중 오류" });
-            }
+                const sets = await wordSetsCollection.find({}, { projection: { _id: 1 } }).toArray();
+                const setKeys = sets.map(s => s._id);
+                res.json(setKeys);
+            } catch (e) { res.status(500).json({ message: "단어 세트 목록 조회 오류" }); }
         });
         
-        // (다른 API들은 이전과 동일하게 유지됩니다)
-        app.post('/api/words/add', async (req, res) => { try { const { words, sets } = req.body; if (!words || !words.length) return res.status(400).json({ message: '추가할 단어가 없습니다.' }); const updateQuery = { $push: { 'data.vocabularyData': { $each: words } } }; if (sets && sets.length > 0) { updateQuery.$addToSet = { 'data.addedSets': { $each: sets } }; } await collection.updateOne({ _id: 'main' }, updateQuery, { upsert: true }); res.status(200).json({ message: '단어 추가 성공' }); } catch (e) { console.error(e); res.status(500).json({ message: "단어 추가 중 오류" }); } });
-        app.post('/api/incorrect/update', async (req, res) => { try { const { word, count } = req.body; await collection.updateOne({ _id: 'main' }, { $set: { [`data.incorrectCounts.${word}`]: count } }); res.status(200).json({ message: '오답 횟수 업데이트 성공' }); } catch (e) { res.status(500).json({ message: "오답 횟수 업데이트 중 오류" }); } });
-        app.delete('/api/words/:id', async (req, res) => { try { const wordId = Number(req.params.id); await collection.updateOne({ _id: 'main' }, { $pull: { 'data.vocabularyData': { id: wordId } } }); res.status(200).json({ message: '단어 삭제 성공' }); } catch (e) { res.status(500).json({ message: "단어 삭제 중 오류" }); } });
+        // POST /api/wordsets : 새로운 단어 세트를 DB에 추가하는 API
+        app.post('/api/wordsets', async (req, res) => {
+            try {
+                const { key, content } = req.body;
+                if (!key || !content) return res.status(400).json({ message: '세트 번호와 내용이 필요합니다.' });
+                
+                await wordSetsCollection.updateOne(
+                    { _id: key },
+                    { $set: { content: content } },
+                    { upsert: true }
+                );
+                res.status(201).json({ message: `${key}번 세트가 성공적으로 저장되었습니다.` });
+            } catch (e) { res.status(500).json({ message: "단어 세트 저장 오류" }); }
+        });
 
+        // POST /api/add-set-to-user/:setKey : 특정 세트를 사용자 학습 목록에 추가하는 API
+        app.post('/api/add-set-to-user/:setKey', async (req, res) => {
+            const { setKey } = req.params;
+            try {
+                const wordSet = await wordSetsCollection.findOne({ _id: setKey });
+                if (!wordSet) return res.status(404).json({ message: '세트를 찾을 수 없습니다.' });
 
-        app.listen(port, () => { console.log(`최종 안정화 서버가 ${port}번 포트에서 실행 중입니다.`); });
+                const lines = wordSet.content.split('\n').filter(line => line.trim());
+                const newWords = [];
+                lines.forEach((line, index) => {
+                    const parts = line.split(',').map(part => part.trim());
+                    if (parts.length >= 4) {
+                        const [japanese, ...rest] = parts;
+                        newWords.push({ id: Date.now() + index, japanese, parts: rest });
+                    }
+                });
+
+                const userDoc = await userDataCollection.findOne({ _id: 'main' });
+                const currentVocab = userDoc.data.vocabularyData || [];
+                const uniqueNewWords = newWords.filter(nw => !currentVocab.some(ew => ew.japanese === nw.japanese));
+
+                await userDataCollection.updateOne(
+                    { _id: 'main' },
+                    {
+                        $push: { 'data.vocabularyData': { $each: uniqueNewWords } },
+                        $addToSet: { 'data.addedSets': setKey }
+                    }
+                );
+                res.status(200).json({ message: `${setKey}번 세트가 학습 목록에 추가되었습니다.` });
+            } catch (e) { res.status(500).json({ message: "학습 목록 추가 오류" }); }
+        });
+
+        // (기존 오답, 삭제, 섞기 API들은 userDataCollection을 바라보도록 수정 필요)
+        // ... 생략 ... (이후 단계에서 구체화)
+
+        app.listen(port, () => { console.log(`v3 서버가 ${port}번 포트에서 실행 중입니다.`); });
+
     } catch (e) {
         console.error("DB 연결 실패.", e);
         process.exit(1);
     }
 }
-
 startServer();
