@@ -19,7 +19,6 @@ async function initializeApp() {
         
         createSetButtons();
         renderVocabulary();
-        updateSetButtons();
     } catch (error) {
         console.error('앱 초기화 실패:', error);
     }
@@ -33,42 +32,26 @@ async function postRequest(endpoint, body = {}) {
             body: JSON.stringify(body)
         });
         return response.ok;
-    } catch (error) {
-        console.error(`${endpoint} 요청 실패:`, error);
-        return false;
-    }
+    } catch (error) { console.error(`${endpoint} 요청 실패:`, error); return false; }
 }
 
 async function addSetToDatabase() {
     const batchText = document.getElementById('batchInput').value.trim();
     if (!batchText) return alert("입력창에 추가할 세트 정보를 입력해주세요.");
-    
     const regex = /'(\d+)':\s*`([\s\S]*?)`/g;
     let match;
     const setsToAdd = [];
-
     while ((match = regex.exec(batchText)) !== null) {
-        const key = match[1];
-        const content = match[2].trim();
-        setsToAdd.push({ key, content });
+        setsToAdd.push({ key: match[1], content: match[2].trim() });
     }
-
-    if (setsToAdd.length === 0) {
-        return alert("형식에 맞는 세트를 찾을 수 없습니다. (예: '82':`단어...`)");
-    }
-
-    const results = await Promise.all(
-        setsToAdd.map(set => postRequest('/wordsets', { key: set.key, content: set.content }))
-    );
+    if (setsToAdd.length === 0) return alert("형식에 맞는 세트를 찾을 수 없습니다. (예: '82':`단어...`)");
+    const results = await Promise.all(setsToAdd.map(set => postRequest('/wordsets', set)));
     const successCount = results.filter(ok => ok).length;
-
     if (successCount > 0) {
-        alert(`${successCount}개의 세트가 데이터베이스에 성공적으로 등록되었습니다!`);
+        alert(`${successCount}개의 세트가 데이터베이스에 등록되었습니다.`);
         document.getElementById('batchInput').value = '';
         await initializeApp();
-    } else {
-        alert('세트 등록에 실패했습니다.');
-    }
+    } else { alert('세트 등록에 실패했습니다.'); }
 }
 
 async function addWordSet(setKey) {
@@ -147,6 +130,7 @@ function createSetButtons() {
         button.onclick = () => addWordSet(key);
         buttonContainer.appendChild(button);
     });
+    updateSetButtons();
 }
 
 function updateSetButtons() {
@@ -188,7 +172,7 @@ function toggleDetails(wordId) { const detailsElement = document.getElementById(
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
     const batchAddBtn = document.querySelector('.add-btn');
-    if(batchAddBtn) {
+    if (batchAddBtn) {
         batchAddBtn.textContent = '세트 등록';
         batchAddBtn.onclick = addSetToDatabase;
     }
