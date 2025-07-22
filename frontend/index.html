@@ -7,6 +7,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
+        /* CSS는 변경사항 없습니다 */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Noto Sans KR', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
         .container { width: 100%; max-width: 800px; background: rgba(255, 255, 255, 0.95); border-radius: 20px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); backdrop-filter: blur(10px); overflow: hidden; flex: 1; display: flex; flex-direction: column; }
@@ -75,12 +76,12 @@
                 </div>
             </div>
             <div class="action-group">
-                <h4>직접 단어 일괄 추가</h4>
+                <h4>직접 단어 세트 등록하기</h4>
                 <div class="input-group">
-                    <textarea id="batchInput" class="batch-textarea" placeholder="또는 여기에 직접 단어를 붙여넣으세요."></textarea>
+                    <textarea id="batchInput" class="batch-textarea" placeholder="DB에 새 단어 세트를 등록합니다. (예: '82':`단어...`)"></textarea>
                     <div class="batch-buttons">
-                        <button class="btn add-btn" onclick="addWordsFromTextarea()">일괄 추가</button>
-                        <button class="btn delete-all-btn" id="deleteAllBtn" onclick="deleteAllWords()">전체 삭제</button>
+                        <button class="btn add-btn" onclick="addSetToDatabase()">세트 등록</button>
+                        <button class="btn delete-all-btn" id="deleteAllBtn" onclick="deleteAllWords()">학습 목록 초기화</button>
                         <button class="btn shuffle-btn" id="shuffleBtn" onclick="shuffleWords()">순서 섞기</button>
                     </div>
                 </div>
@@ -89,7 +90,7 @@
         <div class="vocabulary-list" id="vocabularyList"></div>
         <div class="footer"><p><i class="fas fa-heart"></i> by rebuild</p></div>
     </div>
-    <script src="word-sets.js"></script>
+    
     <script src="script.js"></script>
 </body>
 </html>
