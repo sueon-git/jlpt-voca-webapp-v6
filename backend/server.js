@@ -13,7 +13,7 @@ const userDataCollectionName = 'userdata';
 const wordSetsCollectionName = 'wordsets';
 
 const corsOptions = {
-  origin: 'https://jlpt-voca-webapp-v3.netlify.app',
+  origin: 'https://jlpt-voca-webapp-v3.netlify.app/',
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
@@ -27,9 +27,7 @@ async function startServer() {
         const userdata = db.collection(userDataCollectionName);
         const wordsets = db.collection(wordSetsCollectionName);
 
-        // --- API 엔드포인트 ---
-
-        // GET /api/userdata : 사용자 학습 데이터를 가져옴
+        // GET /api/userdata : 사용자 학습 데이터 가져오기
         app.get('/api/userdata', async (req, res) => {
             try {
                 let result = await userdata.findOne({ _id: 'main' });
@@ -42,7 +40,7 @@ async function startServer() {
             } catch (e) { res.status(500).json({ message: "사용자 데이터 조회 오류" }); }
         });
 
-        // GET /api/wordsets : 추가 가능한 모든 단어 세트 목록을 가져옴
+        // GET /api/wordsets : 추가 가능한 모든 단어 세트 목록 가져오기
         app.get('/api/wordsets', async (req, res) => {
             try {
                 const sets = await wordsets.find({}, { projection: { _id: 1 } }).toArray();
@@ -56,8 +54,8 @@ async function startServer() {
             try {
                 const { key, content } = req.body;
                 if (!key || !content) return res.status(400).json({ message: '세트 번호와 내용이 필요합니다.' });
-                await wordsets.updateOne({ _id: key }, { $set: { content } }, { upsert: true });
-                res.status(201).json({ message: `${key}번 세트 저장 성공` });
+                await wordsets.updateOne({ _id: key }, { $set: { content: content } }, { upsert: true });
+                res.status(201).json({ message: `${key}번 세트가 성공적으로 저장되었습니다.` });
             } catch (e) { res.status(500).json({ message: "단어 세트 저장 오류" }); }
         });
 
@@ -74,7 +72,7 @@ async function startServer() {
                     const parts = line.split(',').map(part => part.trim());
                     if (parts.length >= 4) {
                         const [japanese, ...rest] = parts;
-                        wordsFromSet.push({ id: crypto.randomUUID(), japanese, parts });
+                        wordsFromSet.push({ id: crypto.randomUUID(), japanese, parts: rest });
                     }
                 });
 
@@ -82,45 +80,25 @@ async function startServer() {
                 const currentVocab = userDoc.data.vocabularyData || [];
                 const uniqueNewWords = wordsFromSet.filter(nw => !currentVocab.some(ew => ew.japanese === nw.japanese));
 
-                await userdata.updateOne(
-                    { _id: 'main' },
-                    {
-                        $push: { 'data.vocabularyData': { $each: uniqueNewWords } },
-                        $addToSet: { 'data.addedSets': setKey }
-                    }
-                );
+                if (uniqueNewWords.length > 0) {
+                    await userdata.updateOne(
+                        { _id: 'main' },
+                        { $push: { 'data.vocabularyData': { $each: uniqueNewWords } } }
+                    );
+                }
+                
+                await userdata.updateOne({ _id: 'main' }, { $addToSet: { 'data.addedSets': setKey } });
                 res.status(200).json({ message: `${setKey}번 세트가 학습 목록에 추가되었습니다.` });
             } catch (e) { res.status(500).json({ message: "학습 목록 추가 오류" }); }
         });
         
-        // POST /api/incorrect/update : 오답 횟수 수정
-        app.post('/api/incorrect/update', async (req, res) => {
-            const { word, count } = req.body;
-            try {
-                await userdata.updateOne({ _id: 'main' }, { $set: { [`data.incorrectCounts.${word}`]: count } });
-                res.status(200).json({ message: '오답 횟수 업데이트 성공' });
-            } catch (e) { res.status(500).json({ message: "오답 횟수 업데이트 중 오류" }); }
-        });
-
-        // POST /api/delete-all-words : 단어 목록만 삭제 (오답 기록 보존)
-        app.post('/api/delete-all-words', async (req, res) => {
-            try {
-                await userdata.updateOne({ _id: 'main' }, { $set: { 'data.vocabularyData': [], 'data.addedSets': [] } });
-                res.status(200).json({ message: '단어 목록 삭제 성공' });
-            } catch (e) { res.status(500).json({ message: "전체 삭제 중 오류" }); }
-        });
-        
-        // POST /api/shuffle-words : 단어 순서 변경
-        app.post('/api/shuffle-words', async (req, res) => {
-            try {
-                const { shuffledVocabularyData } = req.body;
-                await userdata.updateOne({ _id: 'main' }, { $set: { 'data.vocabularyData': shuffledVocabularyData } });
-                res.status(200).json({ message: '순서 섞기 성공' });
-            } catch (e) { res.status(500).json({ message: "순서 섞기 중 오류" }); }
-        });
+        // (다른 API들은 이전 최종본과 동일)
+        app.post('/api/incorrect/update', async (req, res) => { const { word, count } = req.body; try { await userdata.updateOne({ _id: 'main' }, { $set: { [`data.incorrectCounts.${word}`]: count } }); res.status(200).json({ message: '오답 횟수 업데이트 성공' }); } catch (e) { res.status(500).json({ message: "오답 횟수 업데이트 중 오류" }); } });
+        app.post('/api/delete-all-words', async (req, res) => { try { await userdata.updateOne({ _id: 'main' }, { $set: { 'data.vocabularyData': [], 'data.addedSets': [] } }); res.status(200).json({ message: '단어 목록 삭제 성공' }); } catch (e) { res.status(500).json({ message: "전체 삭제 중 오류" }); } });
+        app.post('/api/shuffle-words', async (req, res) => { try { const { shuffledVocabularyData } = req.body; await userdata.updateOne({ _id: 'main' }, { $set: { 'data.vocabularyData': shuffledVocabularyData } }); res.status(200).json({ message: '순서 섞기 성공' }); } catch (e) { res.status(500).json({ message: "순서 섞기 중 오류" }); } });
 
 
-        app.listen(port, () => { console.log(`v3 최종 서버가 ${port}번 포트에서 실행 중입니다.`); });
+        app.listen(port, () => { console.log(`v3 서버가 ${port}번 포트에서 실행 중입니다.`); });
     } catch (e) {
         console.error("DB 연결 실패.", e);
         process.exit(1);

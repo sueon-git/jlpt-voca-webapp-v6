@@ -24,13 +24,18 @@ async function initializeApp() {
     }
 }
 
-async function postRequest(endpoint, body) {
+async function postRequest(endpoint, body = {}) {
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
         });
         return response.ok;
-    } catch (error) { console.error(`${endpoint} 요청 실패:`, error); return false; }
+    } catch (error) {
+        console.error(`${endpoint} 요청 실패:`, error);
+        return false;
+    }
 }
 
 async function addSetToDatabase() {
@@ -56,6 +61,7 @@ async function addSetToDatabase() {
 async function addWordSet(setKey) {
     const setNumber = String(setKey);
     if (addedSets.has(setNumber)) return;
+
     const success = await postRequest(`/add-set-to-user/${setNumber}`);
     if (success) {
         await initializeApp();
@@ -91,14 +97,14 @@ async function shuffleWords() {
         const j = Math.floor(Math.random() * (i + 1));
         [vocabularyData[i], vocabularyData[j]] = [vocabularyData[j], vocabularyData[i]];
     }
-    const success = await postRequest('/shuffle-words', { shuffledVocabularyData: vocabularyData });
-    if (success) await initializeApp();
+    renderVocabulary(); // 먼저 화면에 섞인 것을 보여줌
+    await postRequest('/shuffle-words', { shuffledVocabularyData: vocabularyData });
 }
 
 function createSetButtons() {
     const buttonContainer = document.getElementById('wordSetButtons');
     buttonContainer.innerHTML = '';
-    availableSets.sort((a, b) => a - b).forEach(key => {
+    availableSets.sort((a, b) => Number(a) - Number(b)).forEach(key => {
         const button = document.createElement('button');
         button.className = 'set-btn';
         button.textContent = key;
@@ -135,4 +141,7 @@ function toggleDetails(wordId) { const detailsElement = document.getElementById(
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
+    // 일괄 추가 버튼에 새 기능 연결
+    const batchAddBtn = document.querySelector('.add-btn');
+    if(batchAddBtn) batchAddBtn.onclick = addSetToDatabase;
 });
