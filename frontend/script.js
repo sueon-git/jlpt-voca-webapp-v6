@@ -120,6 +120,42 @@ async function shuffleWords() {
     await postRequest('/shuffle-words', { shuffledVocabularyData: vocabularyData });
 }
 
+async function searchWords() {
+    const searchInput = document.getElementById('searchInput');
+    const searchTerm = searchInput.value.trim();
+    const resultsContainer = document.getElementById('searchResults');
+    const resultsContent = document.getElementById('searchResultsContent');
+
+    if (!searchTerm) {
+        resultsContainer.style.display = 'none';
+        return;
+    }
+
+    resultsContainer.style.display = 'block';
+    resultsContent.innerHTML = '<p>검색 중...</p>';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/search?term=${encodeURIComponent(searchTerm)}`);
+        const results = await response.json();
+
+        if (results.length === 0) {
+            resultsContent.innerHTML = '<p>검색 결과가 없습니다.</p>';
+        } else {
+            resultsContent.innerHTML = results.map(item => `
+                <div class="result-item">
+                    <div class="result-info">
+                        <strong>${item.set}번</strong> 세트 / <strong>${item.line}번째</strong> 줄
+                    </div>
+                    <div class="result-content">${item.content.replace(new RegExp(searchTerm, 'g'), `<span class="highlight">${searchTerm}</span>`)}</div>
+                </div>
+            `).join('');
+        }
+    } catch (error) {
+        resultsContent.innerHTML = '<p>검색 중 오류가 발생했습니다.</p>';
+        console.error('검색 실패:', error);
+    }
+}
+
 function createSetButtons() {
     const buttonContainer = document.getElementById('wordSetButtons');
     buttonContainer.innerHTML = '';

@@ -48,6 +48,35 @@ async function startServer() {
                 res.json(setKeys);
             } catch (e) { res.status(500).json({ message: "단어 세트 목록 조회 오류" }); }
         });
+
+        app.get('/api/search', async (req, res) => {
+            const { term } = req.query;
+            if (!term) {
+             return res.status(400).json({ message: '검색어가 필요합니다.' });
+            }
+            try {
+             // 모든 단어 세트 문서를 가져옴
+                const allSets = await wordsets.find({}).toArray();
+                const results = [];
+
+                allSets.forEach(setDoc => {
+                     const lines = setDoc.content.split('\n');
+                     lines.forEach((line, index) => {
+                         // 줄 내용에 검색어가 포함되어 있으면 결과에 추가
+                         if (line.includes(term)) {
+                             results.push({
+                                 set: setDoc._id,       // 세트 번호
+                                 line: index + 1,       // 줄 번호
+                                 content: line          // 해당 줄의 내용
+                    });
+                }
+            });
+        });
+        res.json(results);
+    } catch (e) {
+        res.status(500).json({ message: "검색 중 오류 발생" });
+    }
+});
         
         app.post('/api/wordsets', async (req, res) => {
             try {

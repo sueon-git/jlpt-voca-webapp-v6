@@ -57,11 +57,38 @@
         .empty-state { text-align: center; padding: 50px; }
         .footer { background: linear-gradient(135deg, #81ecec, #74b9ff); padding: 20px; text-align: center; font-weight: 500; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .search-group { display: flex; gap: 10px; } /* 검색창 UI 스타일 */
+        .search-input { flex: 1; padding: 10px 15px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem;}
+        .search-btn { background: #00cec9; }
+        .search-results { padding: 30px; background: #f7f8fa; }
+        .search-results h4 { margin-bottom: 15px;}
+        .result-item { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 3px solid #00cec9;}
+        .result-info { font-size: 0.8rem; color: #888; margin-bottom: 5px; }
+        .result-info strong { color: #e84393; }
+        .result-content { font-family: 'Noto Sans JP', sans-serif; }
+
     </style>
 </head>
 <body>
-    <div class="container">
+<div class="container">
         <div class="header"><h1><i class="fas fa-book-open"></i> JLPT 단어 목록</h1><p>아래에서 단어 세트를 추가하거나, 직접 단어를 입력하세요.</p></div>
+        <div class="search-results" id="searchResults" style="display: none;">
+    <h4>검색 결과</h4>
+    <div id="searchResultsContent"></div>
+</div>
+<div class="set-container">
+    <div class="action-group">
+        <h4>전체 단어 세트에서 검색</h4>
+        <div class="search-group">
+            <input type="text" id="searchInput" class="search-input" placeholder="검색할 단어 입력...">
+            <button class="btn search-btn" onclick="searchWords()"><i class="fas fa-search"></i> 검색</button>
+    </div>
+</div>
+<div class="action-group">
+        <h4>버튼으로 단어 세트 추가</h4>
+        <div class="set-buttons" id="wordSetButtons"></div>
+    </div>
+</div>
         <div class="set-container">
             <h4>버튼으로 단어 세트 추가하기</h4>
             <div class="set-buttons" id="wordSetButtons"></div>
