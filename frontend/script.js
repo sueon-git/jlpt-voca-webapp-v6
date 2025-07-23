@@ -38,20 +38,31 @@ async function postRequest(endpoint, body = {}) {
 async function addSetToDatabase() {
     const batchText = document.getElementById('batchInput').value.trim();
     if (!batchText) return alert("입력창에 추가할 세트 정보를 입력해주세요.");
+    
     const regex = /'(\d+)':\s*`([\s\S]*?)`/g;
     let match;
     const setsToAdd = [];
+
     while ((match = regex.exec(batchText)) !== null) {
         setsToAdd.push({ key: match[1], content: match[2].trim() });
     }
-    if (setsToAdd.length === 0) return alert("형식에 맞는 세트를 찾을 수 없습니다. (예: '82':`단어...`)");
-    const results = await Promise.all(setsToAdd.map(set => postRequest('/wordsets', set)));
+
+    if (setsToAdd.length === 0) {
+        return alert("형식에 맞는 세트를 찾을 수 없습니다. (예: '82':`단어...`)");
+    }
+
+    const results = await Promise.all(
+        setsToAdd.map(set => postRequest('/wordsets', set))
+    );
     const successCount = results.filter(ok => ok).length;
+
     if (successCount > 0) {
         alert(`${successCount}개의 세트가 데이터베이스에 등록되었습니다.`);
         document.getElementById('batchInput').value = '';
         await initializeApp();
-    } else { alert('세트 등록에 실패했습니다.'); }
+    } else {
+        alert('세트 등록에 실패했습니다.');
+    }
 }
 
 async function addWordSet(setKey) {
@@ -120,42 +131,6 @@ async function shuffleWords() {
     await postRequest('/shuffle-words', { shuffledVocabularyData: vocabularyData });
 }
 
-async function searchWords() {
-    const searchInput = document.getElementById('searchInput');
-    const searchTerm = searchInput.value.trim();
-    const resultsContainer = document.getElementById('searchResults');
-    const resultsContent = document.getElementById('searchResultsContent');
-
-    if (!searchTerm) {
-        resultsContainer.style.display = 'none';
-        return;
-    }
-
-    resultsContainer.style.display = 'block';
-    resultsContent.innerHTML = '<p>검색 중...</p>';
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/search?term=${encodeURIComponent(searchTerm)}`);
-        const results = await response.json();
-
-        if (results.length === 0) {
-            resultsContent.innerHTML = '<p>검색 결과가 없습니다.</p>';
-        } else {
-            resultsContent.innerHTML = results.map(item => `
-                <div class="result-item">
-                    <div class="result-info">
-                        <strong>${item.set}번</strong> 세트 / <strong>${item.line}번째</strong> 줄
-                    </div>
-                    <div class="result-content">${item.content.replace(new RegExp(searchTerm, 'g'), `<span class="highlight">${searchTerm}</span>`)}</div>
-                </div>
-            `).join('');
-        }
-    } catch (error) {
-        resultsContent.innerHTML = '<p>검색 중 오류가 발생했습니다.</p>';
-        console.error('검색 실패:', error);
-    }
-}
-
 function createSetButtons() {
     const buttonContainer = document.getElementById('wordSetButtons');
     buttonContainer.innerHTML = '';
@@ -208,7 +183,7 @@ function toggleDetails(wordId) { const detailsElement = document.getElementById(
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
     const batchAddBtn = document.querySelector('.add-btn');
-    if (batchAddBtn) {
+    if(batchAddBtn) {
         batchAddBtn.textContent = '세트 등록';
         batchAddBtn.onclick = addSetToDatabase;
     }
