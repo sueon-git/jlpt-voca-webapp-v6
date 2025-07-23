@@ -13,7 +13,8 @@
 
 - 입력란에 있는 데이터들이 세트등록 버튼을 누르는 순간 Render서버를 통해 mongoDB에 저장됨
 
-- mongoDB 데이터 백업법 : clone document -> soid를 main으로 변경 필요
+- mongoDB 데이터 백업법 : 웹앱에서 모든 아이콘 활성화 시킨뒤, DB에서 clone document 
+-> soid를 main으로 변경 필요 -> {} 제거필요
 
 - 단어의 특정부분 빨간색 표시 : <span class="highlight">も</span>
 
