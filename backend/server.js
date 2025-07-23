@@ -89,11 +89,25 @@ async function startServer() {
         });
         
         app.post('/api/incorrect/update', async (req, res) => {
-            const { word, count } = req.body;
-            try {
-                await userdata.updateOne({ _id: 'main' }, { $set: { [`data.incorrectCounts.${word}`]: count } });
-                res.status(200).json({ message: '오답 횟수 업데이트 성공' });
-            } catch (e) { res.status(500).json({ message: "오답 횟수 업데이트 중 오류" }); }
+
+    console.log("====== /api/incorrect/update 요청 시작 ======");
+    console.log("받은 데이터 (req.body):", req.body);
+    
+    const { word, count } = req.body;
+    const safeWordKey = word.replace(/\./g, '_'); 
+
+    try {
+        await userdata.updateOne({ _id: 'main' }, { $set: { [`data.incorrectCounts.${safeWordKey}`]: count } });
+        
+        console.log(`오답 횟수 업데이트 성공: { ${safeWordKey}: ${count} }`);
+        res.status(200).json({ message: '오답 횟수 업데이트 성공' });
+
+    } catch (e) {
+        console.error("!!!!!! /api/incorrect/update 처리 중 오류 발생 !!!!!!");
+        console.error(e); 
+
+        res.status(500).json({ message: "오답 횟수 업데이트 중 오류" });
+    }
         });
 
         app.post('/api/delete-all-words', async (req, res) => {
