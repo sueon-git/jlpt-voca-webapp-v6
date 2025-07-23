@@ -57,7 +57,7 @@ async function addSetToDatabase() {
     const successCount = results.filter(ok => ok).length;
 
     if (successCount > 0) {
-        alert(`${successCount}개의 세트가 데이터베이스에 등록되었습니다.`);
+        alert(`${successCount}개의 세트가 데이터베이스에 등록되었습니다!`);
         document.getElementById('batchInput').value = '';
         await initializeApp();
     } else {
@@ -131,6 +131,20 @@ async function shuffleWords() {
     await postRequest('/shuffle-words', { shuffledVocabularyData: vocabularyData });
 }
 
+async function deleteWord(event, wordId) {
+    event.stopPropagation();
+    const word = vocabularyData.find(w => w.id === wordId);
+    if (word && confirm(`'${word.japanese}' 단어를 삭제하시겠습니까?`)) {
+        const success = await fetch(`${API_BASE_URL}/words/${word.id}`, { method: 'DELETE' });
+        if (success.ok) {
+            await initializeApp();
+        } else {
+            alert('단어 삭제에 실패했습니다.');
+        }
+    }
+}
+
+
 function createSetButtons() {
     const buttonContainer = document.getElementById('wordSetButtons');
     buttonContainer.innerHTML = '';
@@ -175,7 +189,7 @@ function renderVocabulary() {
         }).join('');
         const count = incorrectCounts[word.japanese] || 0;
         const incorrectBadge = count > 0 ? `<span class="incorrect-badge">${count}</span>` : '';
-        return `<div class="vocab-item" id="${word.id}" onclick="toggleDetails('${word.id}')"><div class="vocab-header"><div><span class="japanese-word">${word.japanese}</span>${incorrectBadge}</div><div><button class="incorrect-btn" onclick="markIncorrect(event, '${word.id}')">오답</button></div></div><div class="vocab-details" id="details-${word.id}"><div class="vocab-main-details"><p><strong>뜻:</strong> ${korean || ''}</p><p><strong>히라가나:</strong> ${hiragana || ''}</p><p><strong>발음:</strong> ${pronunciation || ''}</p></div>${kanjiHtml ? `<div class="kanji-details">${kanjiHtml}</div>` : ''}</div></div>`;
+        return `<div class="vocab-item" id="${word.id}" onclick="toggleDetails('${word.id}')"><div class="vocab-header"><div><span class="japanese-word">${word.japanese}</span>${incorrectBadge}</div><div><button class="incorrect-btn" onclick="markIncorrect(event, '${word.id}')">오답</button><button class="delete-btn" onclick="deleteWord(event, '${word.id}')">&times;</button></div></div><div class="vocab-details" id="details-${word.id}"><div class="vocab-main-details"><p><strong>뜻:</strong> ${korean || ''}</p><p><strong>히라가나:</strong> ${hiragana || ''}</p><p><strong>발음:</strong> ${pronunciation || ''}</p></div>${kanjiHtml ? `<div class="kanji-details">${kanjiHtml}</div>` : ''}</div></div>`;
     }).join('');
 }
 function toggleDetails(wordId) { const detailsElement = document.getElementById(`details-${wordId}`); const itemElement = document.getElementById(wordId); if (detailsElement && itemElement) { detailsElement.classList.toggle('show'); itemElement.classList.toggle('revealed'); } }

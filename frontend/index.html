@@ -3,27 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JLPT 단어 목록</title>
+    <title>JLPT 단어장 v3</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* CSS는 변경사항 없습니다 */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Noto Sans KR', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .container { width: 100%; max-width: 800px; background: rgba(255, 255, 255, 0.95); border-radius: 20px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); backdrop-filter: blur(10px); overflow: hidden; flex: 1; display: flex; flex-direction: column; }
+        .container { width: 100%; max-width: 800px; background: rgba(255, 255, 255, 0.98); border-radius: 20px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); backdrop-filter: blur(10px); overflow: hidden; flex: 1; display: flex; flex-direction: column; }
         .header { background: linear-gradient(135deg, #ffeaa7, #fab1a0); padding: 30px; text-align: center; color: #2d3436; }
-        .header h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 10px; }
-        h4 { margin-bottom: 15px; color: #2d3436; }
-        .set-container, .input-section { padding: 30px; border-bottom: 1px solid rgba(0,0,0,0.1); }
-        .set-container { background-color: #f7f8fa; border-bottom: none; }
+        h4 { margin-bottom: 15px; color: #2d3436; padding-bottom: 5px; border-bottom: 2px solid #eee; }
+        .set-container, .input-section { padding: 30px; border-bottom: 1px solid #e0e0e0; }
+        .set-container { background-color: #f7f8fa; }
         .input-section { background: linear-gradient(135deg, #a8edea, #fed6e3); }
         .action-group { margin-bottom: 25px; }
         .action-group:last-child { margin-bottom: 0; }
-        .action-group h4 { padding-bottom: 5px; border-bottom: 2px solid #eee; }
         .set-buttons { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 10px; }
         .set-btn { padding: 10px; border: 1px solid #74b9ff; background-color: white; color: #74b9ff; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s ease; }
-        .set-btn:hover { background-color: #74b9ff; color: white; }
-        .set-btn.added { background-color: #55efc4; border-color: #00b894; color: #2d3436; cursor: default; font-weight: 700; }
         .set-btn.added { background-color: #55efc4; border-color: #00b894; color: #2d3436; cursor: default; font-weight: 700; }
         .range-input-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .range-input { width: 80px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; text-align: center; }
@@ -37,18 +32,17 @@
         .input-group { display: flex; gap: 15px; align-items: flex-start; }
         .batch-buttons { display: flex; flex-direction: column; gap: 10px; }
         .batch-textarea { flex: 1; min-height: 150px; padding: 20px; border-radius: 15px; border: 2px solid transparent; font-size: 1rem; background: rgba(255, 255, 255, 0.9); font-family: 'Noto Sans JP', sans-serif; resize: vertical; line-height: 1.6; }
-        .vocabulary-list { flex: 1; padding: 30px; background: linear-gradient(135deg, #ffeaa7, #fab1a0); overflow-y: auto; }
-        .vocab-item { background: rgba(255, 255, 255, 0.9); margin-bottom: 15px; border-radius: 15px; padding: 20px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); border-left: 5px solid #74b9ff; cursor: pointer; }
-        .vocab-item.revealed { border-left-color: #00b894; }
+        .vocabulary-list { flex: 1; padding: 30px; background: linear-gradient(135deg, #f5f7fa, #c3cfe2); overflow-y: auto; }
+        .vocab-item { background: white; margin-bottom: 15px; border-radius: 15px; padding: 20px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); border-left: 5px solid #54a0ff; cursor: pointer; }
+        .vocab-item.revealed { border-left-color: #55efc4; }
         .vocab-header { display: flex; align-items: center; justify-content: space-between; }
         .japanese-word { font-family: 'Noto Sans JP', sans-serif; font-size: 1.6rem; font-weight: 500; }
-        .incorrect-badge { background-color: #ff7675; color: white; font-size: 0.75rem; font-weight: 700; padding: 2px 7px; border-radius: 10px; margin-left: 8px; vertical-align: middle; }
-        .incorrect-btn { background-color: #fdcb6e; color: #2d3436; border: none; border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 0.9rem; margin-left: 10px; }
-        .delete-btn { background: #ff7675; color: white; border: none; border-radius: 8px; padding: 8px 12px; cursor: pointer; margin-left: 5px;}
+        .incorrect-badge { background-color: #ff6b81; color: white; font-size: 0.75rem; font-weight: 700; padding: 2px 7px; border-radius: 10px; margin-left: 8px; vertical-align: middle; }
+        .incorrect-btn { background-color: #ffc048; color: #2f3542; border: none; border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 0.9rem; margin-left: 10px; font-weight: 600; }
+        .delete-btn { background: #ff7f50; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; margin-left: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; }
         .vocab-details { display: none; animation: fadeIn 0.4s ease; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; gap: 20px; flex-wrap: wrap; }
         .vocab-details.show { display: flex; }
         .vocab-main-details { flex-grow: 1; }
-        .highlight { color: red; font-weight: bold; }
         .detail-line { margin-bottom: 8px; font-size: 1rem; }
         .kanji-details { flex-shrink: 0; width: 220px; padding-left: 20px; border-left: 1px solid #e0e0e0; }
         .kanji-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -57,45 +51,18 @@
         .empty-state { text-align: center; padding: 50px; }
         .footer { background: linear-gradient(135deg, #81ecec, #74b9ff); padding: 20px; text-align: center; font-weight: 500; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .search-group { display: flex; gap: 10px; } /* 검색창 UI 스타일 */
-        .search-input { flex: 1; padding: 10px 15px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem;}
-        .search-btn { background: #00cec9; }
-        .search-results { padding: 30px; background: #f7f8fa; }
-        .search-results h4 { margin-bottom: 15px;}
-        .result-item { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 3px solid #00cec9;}
-        .result-info { font-size: 0.8rem; color: #888; margin-bottom: 5px; }
-        .result-info strong { color: #e84393; }
-        .result-content { font-family: 'Noto Sans JP', sans-serif; }
-
     </style>
 </head>
 <body>
-<div class="container">
-        <div class="header"><h1><i class="fas fa-book-open"></i> JLPT 단어 목록</h1><p>아래에서 단어 세트를 추가하거나, 직접 단어를 입력하세요.</p></div>
-        <div class="search-results" id="searchResults" style="display: none;">
-    <h4>검색 결과</h4>
-    <div id="searchResultsContent"></div>
-</div>
-<div class="set-container">
-    <div class="action-group">
-        <h4>전체 단어 세트에서 검색</h4>
-        <div class="search-group">
-            <input type="text" id="searchInput" class="search-input" placeholder="검색할 단어 입력...">
-            <button class="btn search-btn" onclick="searchWords()"><i class="fas fa-search"></i> 검색</button>
-    </div>
-</div>
-<div class="action-group">
-        <h4>버튼으로 단어 세트 추가</h4>
-        <div class="set-buttons" id="wordSetButtons"></div>
-    </div>
-</div>
+    <div class="container">
+        <div class="header"><h1><i class="fas fa-book-open"></i> JLPT 단어 목록 v3</h1><p>DB 중심 아키텍처</p></div>
         <div class="set-container">
-            <h4>버튼으로 단어 세트 추가하기</h4>
+            <h4>DB에 등록된 단어 세트</h4>
             <div class="set-buttons" id="wordSetButtons"></div>
         </div>
         <div class="input-section">
             <div class="action-group">
-                <h4>범위/전체 추가</h4>
+                <h4>범위/전체 추가 (학습 목록으로)</h4>
                 <div class="range-input-group">
                     <input type="number" id="startNum" class="range-input" placeholder="시작">
                     <span>~</span>
@@ -105,7 +72,7 @@
                 </div>
             </div>
             <div class="action-group">
-                <h4>직접 단어 세트 등록하기</h4>
+                <h4>새로운 단어 세트 등록하기</h4>
                 <div class="input-group">
                     <textarea id="batchInput" class="batch-textarea" placeholder="DB에 새 단어 세트를 등록합니다. (예: '82':`단어...`)"></textarea>
                     <div class="batch-buttons">
@@ -119,7 +86,6 @@
         <div class="vocabulary-list" id="vocabularyList"></div>
         <div class="footer"><p><i class="fas fa-heart"></i> by rebuild</p></div>
     </div>
-    
     <script src="script.js"></script>
 </body>
 </html>
