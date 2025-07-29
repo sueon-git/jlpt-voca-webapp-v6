@@ -100,6 +100,7 @@ async function addRange() {
     }
 }
 
+// ✨ [핵심 수정] markIncorrect 함수
 async function markIncorrect(event, wordId) {
     event.stopPropagation();
     const word = vocabularyData.find(w => w.id === wordId);
@@ -108,7 +109,25 @@ async function markIncorrect(event, wordId) {
         const success = await postRequest('/incorrect/update', { word: word.japanese, count: newCount });
         if (success) {
             incorrectCounts[word.japanese] = newCount;
+            
+            // 1. 현재 열려있는 카드의 ID들을 기억합니다.
+            const openCardIds = new Set();
+            document.querySelectorAll('.vocab-details.show').forEach(el => {
+                openCardIds.add(el.id.replace('details-', ''));
+            });
+
+            // 2. 화면을 다시 그립니다.
             renderVocabulary();
+
+            // 3. 기억해둔 카드들을 다시 열어줍니다.
+            openCardIds.forEach(id => {
+                const detailsElement = document.getElementById(`details-${id}`);
+                const itemElement = document.getElementById(id);
+                if (detailsElement && itemElement) {
+                    detailsElement.classList.add('show');
+                    itemElement.classList.add('revealed');
+                }
+            });
         }
     }
 }
