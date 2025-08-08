@@ -14,6 +14,7 @@ const userDataCollectionName = 'userdata';
 const wordSetsCollectionName = 'wordsets';
 
 const corsOptions = {
+  // ✨ 여기가 최종 수정된 부분입니다.
   origin: 'https://my-vocab-app-sync-v4.netlify.app',
   optionsSuccessStatus: 200
 };
@@ -27,6 +28,8 @@ async function startServer() {
         const db = client.db(dbName);
         const userdata = db.collection(userDataCollectionName);
         const wordsets = db.collection(wordSetsCollectionName);
+
+        // --- API 엔드포인트 ---
 
         app.get('/api/userdata', async (req, res) => {
             try {
@@ -65,23 +68,12 @@ async function startServer() {
 
                 const lines = wordSet.content.split('\n').filter(line => line.trim());
                 const wordsFromSet = [];
-                const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
-                
                 lines.forEach(line => {
                     const parts = line.split(',').map(part => part.trim());
                     if (parts.length >= 4) {
-                        let japanese, korean, rest;
-                        if (japaneseRegex.test(parts[0])) {
-                            japanese = parts[0];
-                            korean = parts[1];
-                            rest = parts.slice(2);
-                        } else {
-                            korean = parts[0];
-                            japanese = parts[1];
-                            rest = parts.slice(2);
-                        }
-                        const finalParts = [korean, ...rest];
-                        wordsFromSet.push({ id: crypto.randomUUID(), japanese: japanese, parts: finalParts });
+                        const japanese = parts[0];
+                        const restOfParts = parts.slice(1);
+                        wordsFromSet.push({ id: crypto.randomUUID(), japanese: japanese, parts: restOfParts });
                     }
                 });
 
@@ -96,7 +88,7 @@ async function startServer() {
 
                 await userdata.updateOne({ _id: 'main' }, updateQuery, { upsert: true });
                 res.status(200).json({ message: '학습 목록 추가 성공' });
-            } catch (e) { console.error(e); res.status(500).json({ message: "학습 목록 추가 오류" }); }
+            } catch (e) { res.status(500).json({ message: "학습 목록 추가 오류" }); }
         });
         
         app.post('/api/incorrect/update', async (req, res) => {
