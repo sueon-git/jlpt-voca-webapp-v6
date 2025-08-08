@@ -14,6 +14,7 @@ const userDataCollectionName = 'userdata';
 const wordSetsCollectionName = 'wordsets';
 
 const corsOptions = {
+  // ✨ 여기가 최종 수정된 부분입니다.
   origin: 'https://jlpt-voca-webapp-v3.netlify.app',
   optionsSuccessStatus: 200
 };
