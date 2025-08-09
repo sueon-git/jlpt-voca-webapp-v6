@@ -100,7 +100,6 @@ async function addRange() {
     }
 }
 
-// ✨ [핵심 수정] markIncorrect 함수
 async function markIncorrect(event, wordId) {
     event.stopPropagation();
     const word = vocabularyData.find(w => w.id === wordId);
@@ -109,25 +108,7 @@ async function markIncorrect(event, wordId) {
         const success = await postRequest('/incorrect/update', { word: word.japanese, count: newCount });
         if (success) {
             incorrectCounts[word.japanese] = newCount;
-            
-            // 1. 현재 열려있는 카드의 ID들을 기억합니다.
-            const openCardIds = new Set();
-            document.querySelectorAll('.vocab-details.show').forEach(el => {
-                openCardIds.add(el.id.replace('details-', ''));
-            });
-
-            // 2. 화면을 다시 그립니다.
             renderVocabulary();
-
-            // 3. 기억해둔 카드들을 다시 열어줍니다.
-            openCardIds.forEach(id => {
-                const detailsElement = document.getElementById(`details-${id}`);
-                const itemElement = document.getElementById(id);
-                if (detailsElement && itemElement) {
-                    detailsElement.classList.add('show');
-                    itemElement.classList.add('revealed');
-                }
-            });
         }
     }
 }
@@ -163,7 +144,6 @@ async function deleteWord(event, wordId) {
     }
 }
 
-
 function createSetButtons() {
     const buttonContainer = document.getElementById('wordSetButtons');
     buttonContainer.innerHTML = '';
@@ -191,6 +171,7 @@ function updateSetButtons() {
     });
 }
 
+// ✨ [핵심 수정] renderVocabulary 함수
 function renderVocabulary() {
     const listContainer = document.getElementById('vocabularyList');
     document.getElementById('deleteAllBtn').disabled = vocabularyData.length === 0;
@@ -200,15 +181,33 @@ function renderVocabulary() {
         return;
     }
     listContainer.innerHTML = vocabularyData.map(word => {
-        const [korean, hiragana, pronunciation, ...kanjiReadings] = word.parts || [];
-        const kanjiChars = word.japanese.match(/[\u4e00-\u9faf]/g) || [];
+        const title = word.japanese; // DB의 japanese 필드는 이제 '제목' 역할
+        const parts = word.parts || [];
+        const korean = parts[0] || '';
+        const hiragana = parts[1] || '';
+        const pronunciation = parts[2] || '';
+        const kanjiReadings = parts.slice(3);
+        
+        const japaneseRegex = /[\u4e00-\u9faf]/g; // 한자만 찾는 정규식
+        let wordForKanjiExtraction = '';
+
+        // 제목과 뜻 중에서 한자가 포함된 쪽을 찾아서 한자 추출
+        if (japaneseRegex.test(title)) {
+            wordForKanjiExtraction = title;
+        } else if (korean && japaneseRegex.test(korean)) {
+            wordForKanjiExtraction = korean;
+        }
+
+        const kanjiChars = wordForKanjiExtraction.match(japaneseRegex) || [];
         const kanjiHtml = kanjiChars.map((char, index) => {
-            const reading = (kanjiReadings && kanjiReadings[index]) ? kanjiReadings[index].replace(/:/g, '') : '';
+            const reading = (kanjiReadings[index]) ? kanjiReadings[index].replace(/:/g, '') : '';
             return `<div class="kanji-item"><span class="kanji-char">${char}</span><span class="kanji-reading">${reading}</span></div>`;
         }).join('');
+        
         const count = incorrectCounts[word.japanese] || 0;
         const incorrectBadge = count > 0 ? `<span class="incorrect-badge">${count}</span>` : '';
-        return `<div class="vocab-item" id="${word.id}" onclick="toggleDetails('${word.id}')"><div class="vocab-header"><div><span class="japanese-word">${word.japanese}</span>${incorrectBadge}</div><div><button class="incorrect-btn" onclick="markIncorrect(event, '${word.id}')">오답</button><button class="delete-btn" onclick="deleteWord(event, '${word.id}')">&times;</button></div></div><div class="vocab-details" id="details-${word.id}"><div class="vocab-main-details"><p><strong>뜻:</strong> ${korean || ''}</p><p><strong>히라가나:</strong> ${hiragana || ''}</p><p><strong>발음:</strong> ${pronunciation || ''}</p></div>${kanjiHtml ? `<div class="kanji-details">${kanjiHtml}</div>` : ''}</div></div>`;
+
+        return `<div class="vocab-item" id="${word.id}" onclick="toggleDetails('${word.id}')"><div class="vocab-header"><div><span class="japanese-word">${title}</span>${incorrectBadge}</div><div><button class="incorrect-btn" onclick="markIncorrect(event, '${word.id}')">오답</button><button class="delete-btn" onclick="deleteWord(event, '${word.id}')">&times;</button></div></div><div class="vocab-details" id="details-${word.id}"><div class="vocab-main-details"><p><strong>뜻:</strong> ${korean}</p><p><strong>히라가나:</strong> ${hiragana}</p><p><strong>발음:</strong> ${pronunciation}</p></div>${kanjiHtml ? `<div class="kanji-details">${kanjiHtml}</div>` : ''}</div></div>`;
     }).join('');
 }
 function toggleDetails(wordId) { const detailsElement = document.getElementById(`details-${wordId}`); const itemElement = document.getElementById(wordId); if (detailsElement && itemElement) { detailsElement.classList.toggle('show'); itemElement.classList.toggle('revealed'); } }
@@ -216,7 +215,7 @@ function toggleDetails(wordId) { const detailsElement = document.getElementById(
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
     const batchAddBtn = document.querySelector('.add-btn');
-    if(batchAddBtn) {
+    if (batchAddBtn) {
         batchAddBtn.textContent = '세트 등록';
         batchAddBtn.onclick = addSetToDatabase;
     }

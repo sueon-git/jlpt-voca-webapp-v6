@@ -9,12 +9,11 @@ const port = 3000;
 const uri = "mongodb+srv://ghdtnsqls11:ghdtnsqls11@cluster0.7vvslpu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 const client = new MongoClient(uri);
 
-const dbName = 'jlpt-vocab-app-v3';
+const dbName = 'jlpt-vocab-app-v4';
 const userDataCollectionName = 'userdata';
 const wordSetsCollectionName = 'wordsets';
 
 const corsOptions = {
-  // ✨ 여기가 최종 수정된 부분입니다.
   origin: 'https://my-vocab-app-sync-v4.netlify.app',
   optionsSuccessStatus: 200
 };
@@ -28,8 +27,6 @@ async function startServer() {
         const db = client.db(dbName);
         const userdata = db.collection(userDataCollectionName);
         const wordsets = db.collection(wordSetsCollectionName);
-
-        // --- API 엔드포인트 ---
 
         app.get('/api/userdata', async (req, res) => {
             try {
@@ -54,7 +51,6 @@ async function startServer() {
         app.post('/api/wordsets', async (req, res) => {
             try {
                 const { key, content } = req.body;
-                if (!key || !content) return res.status(400).json({ message: '세트 번호와 내용이 필요합니다.' });
                 await wordsets.updateOne({ _id: key }, { $set: { content } }, { upsert: true });
                 res.status(201).json({ message: `${key}번 세트 저장 성공` });
             } catch (e) { res.status(500).json({ message: "단어 세트 저장 오류" }); }
@@ -68,12 +64,13 @@ async function startServer() {
 
                 const lines = wordSet.content.split('\n').filter(line => line.trim());
                 const wordsFromSet = [];
+                
                 lines.forEach(line => {
                     const parts = line.split(',').map(part => part.trim());
                     if (parts.length >= 4) {
-                        const japanese = parts[0];
+                        const title = parts[0];
                         const restOfParts = parts.slice(1);
-                        wordsFromSet.push({ id: crypto.randomUUID(), japanese: japanese, parts: restOfParts });
+                        wordsFromSet.push({ id: crypto.randomUUID(), japanese: title, parts: restOfParts });
                     }
                 });
 
@@ -88,7 +85,7 @@ async function startServer() {
 
                 await userdata.updateOne({ _id: 'main' }, updateQuery, { upsert: true });
                 res.status(200).json({ message: '학습 목록 추가 성공' });
-            } catch (e) { res.status(500).json({ message: "학습 목록 추가 오류" }); }
+            } catch (e) { console.error(e); res.status(500).json({ message: "학습 목록 추가 오류" }); }
         });
         
         app.post('/api/incorrect/update', async (req, res) => {
@@ -113,7 +110,7 @@ async function startServer() {
                 res.status(200).json({ message: '순서 섞기 성공' });
             } catch (e) { res.status(500).json({ message: "순서 섞기 중 오류" }); }
         });
-        
+
         app.delete('/api/words/:wordId', async (req, res) => {
             try {
                 const { wordId } = req.params;
@@ -122,8 +119,7 @@ async function startServer() {
             } catch (e) { res.status(500).json({ message: "단어 삭제 중 오류" }); }
         });
 
-
-        app.listen(port, () => { console.log(`v3 최종 서버가 ${port}번 포트에서 실행 중입니다.`); });
+        app.listen(port, () => { console.log(`v3 서버가 ${port}번 포트에서 실행 중입니다.`); });
     } catch (e) {
         console.error("DB 연결 실패.", e);
         process.exit(1);
