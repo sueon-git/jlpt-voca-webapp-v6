@@ -1,7 +1,7 @@
+const crypto = require('crypto');
 const express = require('express');
 const cors = require('cors');
 const { MongoClient } = require('mongodb');
-const crypto = require('crypto');
 
 const app = express();
 const port = 3000;
@@ -51,12 +51,12 @@ async function startServer() {
         app.post('/api/wordsets', async (req, res) => {
             try {
                 const { key, content } = req.body;
-                if (!key || !content) return res.status(400).json({ message: '세트 번호와 내용이 필요합니다.' });
                 await wordsets.updateOne({ _id: key }, { $set: { content } }, { upsert: true });
                 res.status(201).json({ message: `${key}번 세트 저장 성공` });
             } catch (e) { res.status(500).json({ message: "단어 세트 저장 오류" }); }
         });
 
+        // ✨ [핵심 수정] 입력 순서를 그대로 존중하는 로직으로 변경
         app.post('/api/add-set-to-user/:setKey', async (req, res) => {
             const { setKey } = req.params;
             try {
@@ -65,21 +65,13 @@ async function startServer() {
 
                 const lines = wordSet.content.split('\n').filter(line => line.trim());
                 const wordsFromSet = [];
-                const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
                 
                 lines.forEach(line => {
                     const parts = line.split(',').map(part => part.trim());
                     if (parts.length >= 4) {
-                        let japanese, korean, hiragana, pronunciation, kanjiReadings;
-                        
-                        if (japaneseRegex.test(parts[0])) {
-                            [japanese, korean, hiragana, pronunciation, ...kanjiReadings] = parts;
-                        } else {
-                            [korean, japanese, hiragana, pronunciation, ...kanjiReadings] = parts;
-                        }
-                        
-                        const finalParts = [korean, hiragana, pronunciation, ...kanjiReadings];
-                        wordsFromSet.push({ id: crypto.randomUUID(), japanese: japanese, parts: finalParts });
+                        const title = parts[0]; // 첫 번째 항목을 무조건 제목(japanese 필드)으로 사용
+                        const restOfParts = parts.slice(1); // 나머지를 상세 정보로 사용
+                        wordsFromSet.push({ id: crypto.randomUUID(), japanese: title, parts: restOfParts });
                     }
                 });
 
@@ -119,7 +111,7 @@ async function startServer() {
                 res.status(200).json({ message: '순서 섞기 성공' });
             } catch (e) { res.status(500).json({ message: "순서 섞기 중 오류" }); }
         });
-
+        
         app.delete('/api/words/:wordId', async (req, res) => {
             try {
                 const { wordId } = req.params;
