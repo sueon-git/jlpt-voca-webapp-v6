@@ -38,22 +38,15 @@ async function postRequest(endpoint, body = {}) {
 async function addSetToDatabase() {
     const batchText = document.getElementById('batchInput').value.trim();
     if (!batchText) return alert("입력창에 추가할 세트 정보를 입력해주세요.");
-    
     const regex = /'(\d+)':\s*`([\s\S]*?)`/g;
     let match;
     const setsToAdd = [];
-
     while ((match = regex.exec(batchText)) !== null) {
         setsToAdd.push({ key: match[1], content: match[2].trim() });
     }
-
-    if (setsToAdd.length === 0) {
-        return alert("형식에 맞는 세트를 찾을 수 없습니다. (예: '82':`단어...`)");
-    }
-
-    const results = await Promise.all(
-        setsToAdd.map(set => postRequest('/wordsets', set))
-    );
+    if (setsToAdd.length === 0) return alert("형식에 맞는 세트를 찾을 수 없습니다. (예: '82':`단어...`)");
+    
+    const results = await Promise.all(setsToAdd.map(set => postRequest('/wordsets', set)));
     const successCount = results.filter(ok => ok).length;
 
     if (successCount > 0) {
@@ -100,6 +93,7 @@ async function addRange() {
     }
 }
 
+// [핵심 수정] markIncorrect 함수
 async function markIncorrect(event, wordId) {
     event.stopPropagation();
     const word = vocabularyData.find(w => w.id === wordId);
@@ -108,7 +102,19 @@ async function markIncorrect(event, wordId) {
         const success = await postRequest('/incorrect/update', { word: word.japanese, count: newCount });
         if (success) {
             incorrectCounts[word.japanese] = newCount;
-            renderVocabulary();
+
+            // 화면 전체를 다시 그리는 대신, 필요한 부분만 직접 업데이트
+            const itemElement = document.getElementById(wordId);
+            if (itemElement) {
+                let badge = itemElement.querySelector('.incorrect-badge');
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'incorrect-badge';
+                    const wordSpan = itemElement.querySelector('.japanese-word');
+                    wordSpan.parentNode.insertBefore(badge, wordSpan.nextSibling);
+                }
+                badge.textContent = newCount;
+            }
         }
     }
 }
@@ -144,6 +150,7 @@ async function deleteWord(event, wordId) {
     }
 }
 
+
 function createSetButtons() {
     const buttonContainer = document.getElementById('wordSetButtons');
     buttonContainer.innerHTML = '';
@@ -171,7 +178,6 @@ function updateSetButtons() {
     });
 }
 
-// ✨ [핵심 수정] renderVocabulary 함수
 function renderVocabulary() {
     const listContainer = document.getElementById('vocabularyList');
     document.getElementById('deleteAllBtn').disabled = vocabularyData.length === 0;
@@ -181,23 +187,19 @@ function renderVocabulary() {
         return;
     }
     listContainer.innerHTML = vocabularyData.map(word => {
-        const title = word.japanese; // DB의 japanese 필드는 이제 '제목' 역할
+        const title = word.japanese;
         const parts = word.parts || [];
         const korean = parts[0] || '';
         const hiragana = parts[1] || '';
         const pronunciation = parts[2] || '';
         const kanjiReadings = parts.slice(3);
-        
-        const japaneseRegex = /[\u4e00-\u9faf]/g; // 한자만 찾는 정규식
+        const japaneseRegex = /[\u4e00-\u9faf]/g;
         let wordForKanjiExtraction = '';
-
-        // 제목과 뜻 중에서 한자가 포함된 쪽을 찾아서 한자 추출
         if (japaneseRegex.test(title)) {
             wordForKanjiExtraction = title;
         } else if (korean && japaneseRegex.test(korean)) {
             wordForKanjiExtraction = korean;
         }
-
         const kanjiChars = wordForKanjiExtraction.match(japaneseRegex) || [];
         const kanjiHtml = kanjiChars.map((char, index) => {
             const reading = (kanjiReadings[index]) ? kanjiReadings[index].replace(/:/g, '') : '';
@@ -215,7 +217,7 @@ function toggleDetails(wordId) { const detailsElement = document.getElementById(
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
     const batchAddBtn = document.querySelector('.add-btn');
-    if (batchAddBtn) {
+    if(batchAddBtn) {
         batchAddBtn.textContent = '세트 등록';
         batchAddBtn.onclick = addSetToDatabase;
     }
