@@ -51,6 +51,10 @@
         .empty-state { text-align: center; padding: 50px; }
         .footer { background: linear-gradient(135deg, #81ecec, #74b9ff); padding: 20px; text-align: center; font-weight: 500; }
         .highlight { color: red; font-weight: bold; }
+        .add-all-btn { background: #2c3e50; }
+        .refresh-btn { background: linear-gradient(135deg, #0097e6, #00a8ff); }
+        .fa-spin { animation: fa-spin 2s infinite linear; }
+        @keyframes fa-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
@@ -80,6 +84,9 @@
                         <button class="btn add-btn" onclick="addSetToDatabase()">세트 등록</button>
                         <button class="btn delete-all-btn" id="deleteAllBtn" onclick="deleteAllWords()">학습 목록 초기화</button>
                         <button class="btn shuffle-btn" id="shuffleBtn" onclick="shuffleWords()">순서 섞기</button>
+                        <button class="btn refresh-btn" id="refreshBtn" onclick="refreshApp()">
+                            <i class="fas fa-sync-alt"></i> 새로고침
+                        </button>
                     </div>
                 </div>
             </div>
