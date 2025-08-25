@@ -56,7 +56,7 @@ async function startServer() {
             } catch (e) { res.status(500).json({ message: "단어 세트 저장 오류" }); }
         });
 
-        // ✨ [핵심 수정] 입력 순서를 그대로 존중하는 로직으로 변경
+        // [핵심 수정] 입력 순서를 그대로 존중하는 로직으로 변경
         app.post('/api/add-set-to-user/:setKey', async (req, res) => {
             const { setKey } = req.params;
             try {

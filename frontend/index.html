@@ -56,6 +56,8 @@
         .fa-spin { animation: fa-spin 2s infinite linear; }
         @keyframes fa-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .refresh-btn { background: linear-gradient(135deg, #0097e6, #00a8ff); }
+        .sort-btn { background: linear-gradient(135deg, #6c5ce7, #a29bfe); }
     </style>
 </head>
 <body>
@@ -85,6 +87,9 @@
                         <button class="btn delete-all-btn" id="deleteAllBtn" onclick="deleteAllWords()">학습 목록 초기화</button>
                         <button class="btn refresh-btn" id="refreshBtn" onclick="refreshApp()">
                             <i class="fas fa-sync-alt"></i> 새로고침
+                        </button>
+                        <button class="btn sort-btn" id="sortBtn" onclick="sortByIncorrect()">
+                            <i class="fas fa-sort-amount-down"></i> 오답순 정렬
                         </button>
                         <button class="btn shuffle-btn" id="shuffleBtn" onclick="shuffleWords()">순서 섞기</button>
                     </div>
