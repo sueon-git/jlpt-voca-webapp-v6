@@ -1,6 +1,6 @@
 let vocabularyData = [], addedSets = new Set(), incorrectCounts = {};
 let availableSets = [];
-const API_BASE_URL = 'https://jlpt-voca-webapp-v4.onrender.com/api';
+const API_BASE_URL = 'https://jlpt-voca-webapp-v5.onrender.com/api';
 
 async function initializeApp() { /* 이전과 동일 */ }
 async function postRequest(endpoint, body = {}) { /* 이전과 동일 */ }

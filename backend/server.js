@@ -9,12 +9,12 @@ const port = 3000;
 const uri = "mongodb+srv://ghdtnsqls11:ghdtnsqls11@cluster0.7vvslpu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 const client = new MongoClient(uri);
 
-const dbName = 'jlpt-vocab-app-v4';
+const dbName = 'jlpt-vocab-app-v5';
 const userDataCollectionName = 'userdata';
 const wordSetsCollectionName = 'wordsets';
 
 const corsOptions = {
-  origin: 'https://my-vocab-app-sync-v4.netlify.app',
+  origin: 'https://jlpt-voca-webapp-v5.netlify.app',
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
