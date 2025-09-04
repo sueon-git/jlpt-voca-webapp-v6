@@ -1,6 +1,6 @@
 let vocabularyData = [], addedSets = new Set(), incorrectCounts = {}, correctCounts = {}; // 정답 카운트 변수 추가
 let availableSets = [];
-const API_BASE_URL = 'https://jlpt-voca-webapp-v5.onrender.com/api';
+const API_BASE_URL = 'https://jlpt-voca-webapp-v5.onrender.com/api'; 
 
 async function initializeApp() {
     try {
@@ -99,9 +99,6 @@ function renderVocabulary() {
 // (이하 나머지 함수들은 이전과 동일. 전체 코드를 아래에 첨부.)
 
 // --- 전체 script.js 코드 ---
-let vocabularyData = [], addedSets = new Set(), incorrectCounts = {}, correctCounts = {};
-let availableSets = [];
-const API_BASE_URL = 'https://jlpt-voca-webapp-v5.onrender.com/api';
 
 async function initializeApp() { try { const [userDataRes, setsDataRes] = await Promise.all([ fetch(`${API_BASE_URL}/userdata`), fetch(`${API_BASE_URL}/wordsets`) ]); const userData = await userDataRes.json(); const setsData = await setsDataRes.json(); vocabularyData = userData.vocabularyData || []; addedSets = new Set(userData.addedSets || []); incorrectCounts = userData.incorrectCounts || {}; correctCounts = userData.correctCounts || {}; availableSets = setsData || []; createSetButtons(); renderVocabulary(); } catch (error) { console.error('앱 초기화 실패:', error); } }
 async function postRequest(endpoint, body = {}) { try { const response = await fetch(`${API_BASE_URL}${endpoint}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); return response.ok; } catch (error) { console.error(`${endpoint} 요청 실패:`, error); return false; } }
