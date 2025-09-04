@@ -55,6 +55,45 @@ function preserveOpenCards(callback) {  // 버튼눌러도 카드 오픈상태 �
     });
 }
 
+function sortByIncorrect() {
+    if (vocabularyData.length < 2) return;
+
+    vocabularyData.sort((a, b) => {
+        const countA = incorrectCounts[a.japanese] || 0;
+        const countB = incorrectCounts[b.japanese] || 0;
+        return countB - countA; // 내림차순 정렬
+    });
+
+    renderVocabulary(); // 정렬된 순서로 화면 다시 그리기
+}
+
+async function refreshApp() {
+    const refreshButton = document.getElementById('refreshBtn');
+    if (!refreshButton) return;
+    
+    const setsToReAdd = Array.from(addedSets);
+   
+    const icon = refreshButton.querySelector('i');
+    refreshButton.disabled = true;
+    icon.classList.remove('fa-sync-alt');
+    icon.classList.add('fa-spinner', 'fa-spin');
+
+    const deleteSuccess = await postRequest('/delete-all-words');
+
+    if (deleteSuccess) {
+        if (setsToReAdd.length > 0) {
+            await Promise.all(setsToReAdd.map(setKey => postRequest(`/add-set-to-user/${setKey}`)));
+        }
+        await initializeApp();
+    } else {
+        alert('새로고침 중 오류가 발생했습니다.');
+    }
+
+    refreshButton.disabled = false;
+    icon.classList.remove('fa-spinner', 'fa-spin');
+    icon.classList.add('fa-sync-alt');
+}
+
 async function markCorrect(event, wordId) {
     event.stopPropagation();
     const word = vocabularyData.find(w => w.id === wordId);
