@@ -66,40 +66,35 @@ async function markIncorrect(event, wordId) {
 // 화면 렌더링 함수 수정
 function renderVocabulary() {
     const listContainer = document.getElementById('vocabularyList');
-    // ... (기존 코드) ...
+    document.getElementById('deleteAllBtn').disabled = vocabularyData.length === 0;
+    document.getElementById('shuffleBtn').disabled = vocabularyData.length < 2;
+    if (vocabularyData.length === 0) {
+        listContainer.innerHTML = `<div class="empty-state"><h3>학습할 단어가 없습니다.</h3></div>`;
+        return;
+    }
     listContainer.innerHTML = vocabularyData.map(word => {
-        // ... (기존 코드) ...
+        const title = word.japanese; // 이 줄이 누락되었습니다.
+        const [korean, hiragana, pronunciation, ...kanjiReadings] = word.parts || [];
+        const japaneseRegex = /[\u4e00-\u9faf]/g;
+        let wordForKanjiExtraction = '';
+        if (japaneseRegex.test(title)) {
+            wordForKanjiExtraction = title;
+        } else if (korean && japaneseRegex.test(korean)) {
+            wordForKanjiExtraction = korean;
+        }
+        const kanjiChars = wordForKanjiExtraction.match(japaneseRegex) || [];
+        const kanjiHtml = kanjiChars.map((char, index) => {
+            const reading = (kanjiReadings[index]) ? kanjiReadings[index].replace(/:/g, '') : '';
+            return `<div class="kanji-item"><span class="kanji-char">${char}</span><span class="kanji-reading">${reading}</span></div>`;
+        }).join('');
         const incorrectCount = incorrectCounts[word.japanese] || 0;
         const correctCount = correctCounts[word.japanese] || 0;
-        
         const incorrectBadge = incorrectCount > 0 ? `<span class="incorrect-badge">${incorrectCount}</span>` : '';
-        const correctBadge = correctCount > 0 ? `<span class="correct-badge">${correctCount}</span>` : ''; // 정답 뱃지 생성
-
-        return `<div class="vocab-item" id="${word.id}" onclick="toggleDetails('${word.id}')">
-                    <div class="vocab-header">
-                        <div>
-                            <span class="japanese-word">${title}</span>
-                            ${correctBadge}
-                            ${incorrectBadge}
-                        </div>
-                        <div>
-                            <button class="correct-btn" onclick="markCorrect(event, '${word.id}')">정답</button>
-                            <button class="incorrect-btn" onclick="markIncorrect(event, '${word.id}')">오답</button>
-                            <button class="delete-btn" onclick="deleteWord(event, '${word.id}')">&times;</button>
-                        </div>
-                    </div>
-                    <div class="vocab-details" id="details-${word.id}">
-                        <div class="vocab-main-details">
-                            <p><strong>뜻:</strong> ${korean}</p>
-                            <p><strong>히라가나:</strong> ${hiragana}</p>
-                            <p><strong>발음:</strong> ${pronunciation}</p>
-                        </div>
-                        ${kanjiHtml ? `<div class="kanji-details">${kanjiHtml}</div>` : ''}
-                    </div>
-                </div>`;
+        const correctBadge = correctCount > 0 ? `<span class="correct-badge" style="background-color: #55efc4; color: #2d3436;">${correctCount}</span>` : '';
+        
+        return `<div class="vocab-item" id="${word.id}" onclick="toggleDetails('${word.id}')"><div class="vocab-header"><div><span class="japanese-word">${title}</span>${correctBadge}${incorrectBadge}</div><div><button class="correct-btn" onclick="markCorrect(event, '${word.id}')">정답</button><button class="incorrect-btn" onclick="markIncorrect(event, '${word.id}')">오답</button><button class="delete-btn" onclick="deleteWord(event, '${word.id}')">&times;</button></div></div><div class="vocab-details" id="details-${word.id}"><div class="vocab-main-details"><p><strong>뜻:</strong> ${korean}</p><p><strong>히라가나:</strong> ${hiragana}</p><p><strong>발음:</strong> ${pronunciation}</p></div>${kanjiHtml ? `<div class="kanji-details">${kanjiHtml}</div>` : ''}</div></div>`;
     }).join('');
 }
-
 
 // (이하 나머지 함수들은 이전과 동일. 전체 코드를 아래에 첨부.)
 
