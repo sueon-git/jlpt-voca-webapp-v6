@@ -60,7 +60,7 @@ async function addSetToDatabase() {
 async function addWordSet(setKey) {
     const setNumber = String(setKey);
     if (addedSets.has(setNumber)) return;
-    const success = await postRequest(`/add-set-to-user/${setKey}`);
+    const success = await postRequest(`/add-set-to-user/${setNumber}`);
     if (success) {
         await initializeApp();
     } else {
@@ -97,9 +97,7 @@ function preserveOpenCards(callback) {
     document.querySelectorAll('.vocab-item.revealed').forEach(el => {
         openCardIds.add(el.id);
     });
-
     callback();
-
     openCardIds.forEach(id => {
         const itemElement = document.getElementById(id);
         if (itemElement) {
@@ -200,18 +198,14 @@ function sortByIncorrect() {
 async function getRandomWords() {
     const countInput = document.getElementById('randomCount');
     const count = parseInt(countInput.value);
-
     if (!count || count < 1) {
         alert('추출할 단어의 개수를 1 이상으로 입력해주세요.');
         return;
     }
-    
     if (!confirm(`현재 학습 목록을 지우고, 전체 DB에서 ${count}개의 단어를 무작위로 가져옵니다. 계속하시겠습니까?`)) {
         return;
     }
-
     const success = await postRequest('/userdata/random-set', { count });
-
     if (success) {
         alert(`${count}개의 랜덤 단어를 불러왔습니다!`);
         await initializeApp();
@@ -258,7 +252,12 @@ function renderVocabulary() {
     }
     listContainer.innerHTML = vocabularyData.map(word => {
         const title = word.japanese;
-        const [korean, hiragana, pronunciation, ...kanjiReadings] = word.parts || [];
+        const parts = word.parts || [];
+        const korean = parts[0] || '';
+        const hiragana = parts[1] || '';
+        const pronunciation = parts[2] || '';
+        const kanjiReadings = parts.slice(3);
+        
         const japaneseRegex = /[\u4e00-\u9faf]/g;
         let wordForKanjiExtraction = '';
         if (japaneseRegex.test(title)) {
@@ -271,6 +270,7 @@ function renderVocabulary() {
             const reading = (kanjiReadings[index]) ? kanjiReadings[index].replace(/:/g, '') : '';
             return `<div class="kanji-item"><span class="kanji-char">${char}</span><span class="kanji-reading">${reading}</span></div>`;
         }).join('');
+        
         const correctCount = correctCounts[word.japanese] || 0;
         const incorrectCount = incorrectCounts[word.japanese] || 0;
         const correctBadge = correctCount > 0 ? `<span class="correct-badge">${correctCount}</span>` : '';

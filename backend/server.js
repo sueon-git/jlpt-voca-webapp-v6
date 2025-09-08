@@ -1,7 +1,7 @@
+const crypto = require('crypto');
 const express = require('express');
 const cors = require('cors');
 const { MongoClient } = require('mongodb');
-const crypto = require('crypto');
 
 const app = express();
 const port = 3000;
@@ -70,19 +70,13 @@ async function startServer() {
 
                 const lines = wordSet.content.split('\n').filter(line => line.trim());
                 const wordsFromSet = [];
-                const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
                 
                 lines.forEach(line => {
                     const parts = line.split(',').map(part => part.trim());
                     if (parts.length >= 4) {
-                        let japanese, korean, hiragana, pronunciation, kanjiReadings;
-                        if (japaneseRegex.test(parts[0])) {
-                            [japanese, korean, hiragana, pronunciation, ...kanjiReadings] = parts;
-                        } else {
-                            [korean, japanese, hiragana, pronunciation, ...kanjiReadings] = parts;
-                        }
-                        const finalParts = [korean, hiragana, pronunciation, ...kanjiReadings];
-                        wordsFromSet.push({ id: crypto.randomUUID(), japanese: japanese, parts: finalParts });
+                        const title = parts[0];
+                        const restOfParts = parts.slice(1);
+                        wordsFromSet.push({ id: crypto.randomUUID(), japanese: title, parts: restOfParts });
                     }
                 });
 
