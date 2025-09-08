@@ -14,7 +14,7 @@ const userDataCollectionName = 'userdata';
 const wordSetsCollectionName = 'wordsets';
 
 const corsOptions = {
-  origin: 'https://my-vocab-app-sync-v5.netlify.app',
+  origin: 'https://jlpt-voca-webapp-v5.netlify.app',
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
