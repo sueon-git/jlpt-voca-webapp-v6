@@ -60,6 +60,7 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .refresh-btn { background: linear-gradient(135deg, #0097e6, #00a8ff); }
         .sort-btn { background: linear-gradient(135deg, #6c5ce7, #a29bfe); }
+        .random-btn { background: linear-gradient(135deg, #fd79a8, #e84393); }
     </style>
 </head>
 <body>
@@ -96,6 +97,15 @@
                         <button class="btn shuffle-btn" id="shuffleBtn" onclick="shuffleWords()">순서 섞기</button>
                     </div>
                 </div>
+            </div>
+        </div>
+        <div class="action-group">
+            <h4>랜덤 단어 추출 (전체 DB에서)</h4>
+            <div class="range-input-group">
+                <input type="number" id="randomCount" class="range-input" placeholder="추출할 개수">
+                <button class="btn random-btn" onclick="getRandomWords()">
+                    <i class="fas fa-random"></i> 랜덤 추출
+              </button>
             </div>
         </div>
         <div class="vocabulary-list" id="vocabularyList"></div>
