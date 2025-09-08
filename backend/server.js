@@ -1,7 +1,7 @@
-const crypto = require('crypto');
 const express = require('express');
 const cors = require('cors');
 const { MongoClient } = require('mongodb');
+const crypto = require('crypto');
 
 const app = express();
 const port = 3000;
@@ -14,7 +14,7 @@ const userDataCollectionName = 'userdata';
 const wordSetsCollectionName = 'wordsets';
 
 const corsOptions = {
-  origin: 'https://jlpt-voca-webapp-v5.netlify.app',
+  origin: 'https://my-vocab-app-sync-v5.netlify.app',
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
@@ -32,7 +32,6 @@ async function startServer() {
         const userdata = db.collection(userDataCollectionName);
         const wordsets = db.collection(wordSetsCollectionName);
 
-        // GET /api/userdata : 사용자 학습 데이터 가져오기
         app.get('/api/userdata', async (req, res) => {
             try {
                 let result = await userdata.findOne({ _id: 'main' });
@@ -46,7 +45,6 @@ async function startServer() {
             } catch (e) { res.status(500).json({ message: "사용자 데이터 조회 오류" }); }
         });
 
-        // GET /api/wordsets : 추가 가능한 모든 단어 세트 목록 가져오기
         app.get('/api/wordsets', async (req, res) => {
             try {
                 const sets = await wordsets.find({}, { projection: { _id: 1 } }).toArray();
@@ -55,7 +53,6 @@ async function startServer() {
             } catch (e) { res.status(500).json({ message: "단어 세트 목록 조회 오류" }); }
         });
         
-        // POST /api/wordsets : 새로운 단어 세트를 DB에 추가
         app.post('/api/wordsets', async (req, res) => {
             try {
                 const { key, content } = req.body;
@@ -65,7 +62,6 @@ async function startServer() {
             } catch (e) { res.status(500).json({ message: "단어 세트 저장 오류" }); }
         });
 
-        // POST /api/add-set-to-user/:setKey : 특정 세트를 사용자 학습 목록에 추가
         app.post('/api/add-set-to-user/:setKey', async (req, res) => {
             const { setKey } = req.params;
             try {
@@ -104,7 +100,6 @@ async function startServer() {
             } catch (e) { console.error(e); res.status(500).json({ message: "학습 목록 추가 오류" }); }
         });
         
-        // POST /api/correct/update : 정답 횟수 업데이트
         app.post('/api/correct/update', async (req, res) => {
             const { word, count } = req.body;
             try {
@@ -113,7 +108,6 @@ async function startServer() {
             } catch (e) { res.status(500).json({ message: "정답 횟수 업데이트 중 오류" }); }
         });
         
-        // POST /api/incorrect/update : 오답 횟수 업데이트
         app.post('/api/incorrect/update', async (req, res) => {
             const { word, count } = req.body;
             try {
@@ -122,7 +116,6 @@ async function startServer() {
             } catch (e) { res.status(500).json({ message: "오답 횟수 업데이트 중 오류" }); }
         });
 
-        // POST /api/delete-all-words : 학습 목록 초기화
         app.post('/api/delete-all-words', async (req, res) => {
             try {
                 await userdata.updateOne({ _id: 'main' }, { $set: { 'data.vocabularyData': [], 'data.addedSets': [] } });
@@ -130,7 +123,6 @@ async function startServer() {
             } catch (e) { res.status(500).json({ message: "전체 삭제 중 오류" }); }
         });
         
-        // POST /api/shuffle-words : 단어 순서 변경
         app.post('/api/shuffle-words', async (req, res) => {
             try {
                 const { shuffledVocabularyData } = req.body;
@@ -139,7 +131,6 @@ async function startServer() {
             } catch (e) { res.status(500).json({ message: "순서 섞기 중 오류" }); }
         });
         
-        // DELETE /api/words/:wordId : 특정 단어 삭제
         app.delete('/api/words/:wordId', async (req, res) => {
             try {
                 const { wordId } = req.params;
@@ -147,9 +138,50 @@ async function startServer() {
                 res.status(200).json({ message: '단어 삭제 성공' });
             } catch (e) { res.status(500).json({ message: "단어 삭제 중 오류" }); }
         });
+        
+        app.post('/api/userdata/random-set', async (req, res) => {
+            try {
+                const { count } = req.body;
+                if (!count || count < 1) {
+                    return res.status(400).json({ message: '올바른 개수를 입력해주세요.' });
+                }
 
+                const allSets = await wordsets.find({}).toArray();
+                let allWords = [];
 
-        app.listen(port, () => { console.log(`v4 서버가 ${port}번 포트에서 실행 중입니다.`); });
+                allSets.forEach(setDoc => {
+                    const lines = setDoc.content.split('\n').filter(line => line.trim());
+                    lines.forEach(line => {
+                        const parts = line.split(',').map(part => part.trim());
+                        if (parts.length >= 4) {
+                            const title = parts[0];
+                            const restOfParts = parts.slice(1);
+                            allWords.push({ id: crypto.randomUUID(), japanese: title, parts: restOfParts });
+                        }
+                    });
+                });
+
+                for (let i = allWords.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [allWords[i], allWords[j]] = [allWords[j], allWords[i]];
+                }
+                
+                const randomSample = allWords.slice(0, count);
+
+                await userdata.updateOne(
+                    { _id: 'main' },
+                    { $set: { 'data.vocabularyData': randomSample, 'data.addedSets': [] } },
+                    { upsert: true }
+                );
+                
+                res.status(200).json({ message: '랜덤 단어 목록 생성 성공' });
+            } catch (e) {
+                console.error(e);
+                res.status(500).json({ message: '랜덤 단어 목록 생성 중 오류 발생' });
+            }
+        });
+
+        app.listen(port, () => { console.log(`v5 서버가 ${port}번 포트에서 실행 중입니다.`); });
     } catch (e) {
         console.error("DB 연결 실패.", e);
         process.exit(1);
