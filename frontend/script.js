@@ -2,6 +2,24 @@ let vocabularyData = [], addedSets = new Set(), incorrectCounts = {}, correctCou
 let availableSets = [];
 const API_BASE_URL = 'https://jlpt-voca-webapp-v5.onrender.com/api';
 
+function updateStats() {  // 통계 기능추가
+    const statsContainer = document.getElementById('statsDisplay');
+    if (!statsContainer) return;
+
+    const totalCount = vocabularyData.length;
+    const unstudiedCount = vocabularyData.filter(word => {
+        const correct = correctCounts[word.japanese] || 0;
+        const incorrect = incorrectCounts[word.japanese] || 0;
+        return correct === 0 && incorrect === 0;
+    }).length;
+
+    if (totalCount > 0) {
+        statsContainer.innerHTML = `총: ${totalCount} / 학습 전: ${unstudiedCount}`;
+    } else {
+        statsContainer.innerHTML = '';
+    }
+}
+
 async function initializeApp() {
     try {
         const [userDataRes, setsDataRes] = await Promise.all([
@@ -251,6 +269,8 @@ function updateSetButtons() {
 }
 
 function renderVocabulary() {
+    updateStats(); // 단어 목록을 그리기 전 통계 업데이트
+    
     const listContainer = document.getElementById('vocabularyList');
     document.getElementById('deleteAllBtn').disabled = vocabularyData.length === 0;
     document.getElementById('shuffleBtn').disabled = vocabularyData.length < 2;
