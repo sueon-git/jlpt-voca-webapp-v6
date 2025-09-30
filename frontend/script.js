@@ -225,7 +225,7 @@ function createSetButtons() {
         buttonContainer.appendChild(button);
     });
 
-    // 이 부분의 코드를 수정합니다.
+    // 이 부분의 코드를 수정 (단어세트 제거용 코드)
     const buttonsToRemove = ['300','301','302','303','304','305','306','307','308','309', '310', '311','401','402']; // 1. 제거할 목록
     document.querySelectorAll('.set-btn').forEach(button => {   // 2. 모든 버튼을 확인
         if (buttonsToRemove.includes(button.textContent)) {    // 3. 목록에 포함되면
