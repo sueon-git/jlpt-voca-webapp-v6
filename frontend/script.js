@@ -203,15 +203,62 @@ async function refreshApp() {
     icon.classList.add('fa-sync-alt');
 }
 
-function sortByIncorrect() {
+// --- 새로운 기능: 오답률 기반 정렬 ---
+function sortByIncorrectRate() {
     if (vocabularyData.length < 2) return;
+
     vocabularyData.sort((a, b) => {
-        const countA = incorrectCounts[a.japanese] || 0;
-        const countB = incorrectCounts[b.japanese] || 0;
-        return countB - countA;
+        // 각 단어의 정답, 오답, 전체 횟수 계산
+        const correctA = correctCounts[a.japanese] || 0;
+        const incorrectA = incorrectCounts[a.japanese] || 0;
+        const totalA = correctA + incorrectA;
+
+        const correctB = correctCounts[b.japanese] || 0;
+        const incorrectB = incorrectCounts[b.japanese] || 0;
+        const totalB = correctB + incorrectB;
+
+        // 1. 카테고리 분류 (1순위: 오답있음, 2순위: 미학습, 3순위: 정답만있음)
+        const getCategory = (total, incorrect) => {
+            if (incorrect > 0) return 1;
+            if (total === 0) return 2;
+            return 3;
+        };
+        
+        const categoryA = getCategory(totalA, incorrectA);
+        const categoryB = getCategory(totalB, incorrectB);
+
+        // 카테고리별 정렬
+        if (categoryA !== categoryB) {
+            return categoryA - categoryB;
+        }
+
+        // 같은 카테고리 내에서의 정렬 규칙
+        if (categoryA === 1) { // 1순위: 오답이 있는 단어들
+            const rateA = incorrectA / totalA;
+            const rateB = incorrectB / totalB;
+            // 오답률 내림차순
+            if (rateB !== rateA) {
+                return rateB - rateA;
+            }
+            // 오답률 같으면, 총 시도 횟수 내림차순
+            return totalB - totalA;
+        }
+        
+        if (categoryA === 3) { // 3순위: 정답만 있는 단어들
+            // 정답 횟수 오름차순 (적게 맞춘 것을 위로)
+            return correctA - correctB;
+        }
+
+        return 0; // 2순위: 미학습 단어들은 순서 변경 없음
     });
+
     renderVocabulary();
 }
+
+
+
+
+
 
 async function getRandomWords() {
     const countInput = document.getElementById('randomCount');
