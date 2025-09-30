@@ -1,6 +1,6 @@
 let vocabularyData = [], addedSets = new Set(), incorrectCounts = {}, correctCounts = {};
 let availableSets = [];
-const API_BASE_URL = 'https://jlpt-voca-webapp-v5.onrender.com/api';
+const API_BASE_URL = 'https://jlpt-voca-webapp-v6.onrender.com/api';
 
 function updateStats() {  // 통계 기능추가
     const statsContainer = document.getElementById('statsDisplay');
