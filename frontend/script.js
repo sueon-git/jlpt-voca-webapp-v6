@@ -326,6 +326,20 @@ function renderVocabulary() {
     listContainer.innerHTML = vocabularyData.map(word => {
         const title = word.japanese;
         const parts = word.parts || [];
+
+        let displayTitle = title;
+        const searchTerm = document.getElementById('setSearchInput').value.trim();
+        if (searchTerm) {
+            // 단어의 일본어 뜻, 히라가나, 발음 중 하나라도 검색어를 포함하면 강조
+            const containsSearchTerm = [word.japanese, parts[0], parts[1], parts[2]]
+                .some(part => part && part.toLowerCase().includes(searchTerm.toLowerCase()));
+
+            if (containsSearchTerm) {
+                // <span class="highlight-search"> 태그로 감싸서 분홍색으로 표시
+                displayTitle = `<span class="highlight-search">${title}</span>`;
+            }
+        }
+
         const korean = parts[0] || '';
         const hiragana = parts[1] || '';
         const pronunciation = parts[2] || '';
@@ -348,7 +362,7 @@ function renderVocabulary() {
         const incorrectCount = incorrectCounts[word.japanese] || 0;
         const correctBadge = correctCount > 0 ? `<span class="correct-badge">${correctCount}</span>` : '';
         const incorrectBadge = incorrectCount > 0 ? `<span class="incorrect-badge">${incorrectCount}</span>` : '';
-        return `<div class="vocab-item" id="${word.id}" onclick="toggleDetails('${word.id}')"><div class="vocab-header"><div><span class="japanese-word">${title}</span>${correctBadge}${incorrectBadge}</div><div><button class="correct-btn" onclick="markCorrect(event, '${word.id}')">정답</button><button class="incorrect-btn" onclick="markIncorrect(event, '${word.id}')">오답</button><button class="delete-btn" onclick="deleteWord(event, '${word.id}')">&times;</button></div></div><div class="vocab-details" id="details-${word.id}"><div class="vocab-main-details"><p><strong>뜻:</strong> ${korean}</p><p><strong>히라가나:</strong> ${hiragana}</p><p><strong>발음:</strong> ${pronunciation}</p></div>${kanjiHtml ? `<div class="kanji-details">${kanjiHtml}</div>` : ''}</div></div>`;
+        return `<div class="vocab-item" id="${word.id}" onclick="toggleDetails('${word.id}')"><div class="vocab-header"><div><span class="japanese-word">${displayTitle}</span>${correctBadge}${incorrectBadge}</div><div><button class="correct-btn" onclick="markCorrect(event, '${word.id}')">정답</button><button class="incorrect-btn" onclick="markIncorrect(event, '${word.id}')">오답</button><button class="delete-btn" onclick="deleteWord(event, '${word.id}')">&times;</button></div></div><div class="vocab-details" id="details-${word.id}"><div class="vocab-main-details"><p><strong>뜻:</strong> ${korean}</p><p><strong>히라가나:</strong> ${hiragana}</p><p><strong>발음:</strong> ${pronunciation}</p></div>${kanjiHtml ? `<div class="kanji-details">${kanjiHtml}</div>` : ''}</div></div>`;
     }).join('');
 }
 function toggleDetails(wordId) { const detailsElement = document.getElementById(`details-${wordId}`); const itemElement = document.getElementById(wordId); if (detailsElement && itemElement) { detailsElement.classList.toggle('show'); itemElement.classList.toggle('revealed'); } }
