@@ -1,6 +1,7 @@
 let vocabularyData = [], addedSets = new Set(), incorrectCounts = {}, correctCounts = {};
 let availableSets = [];
 const API_BASE_URL = 'https://jlpt-voca-webapp-v6.onrender.com/api';
+let debounceTimer;
 
 function updateStats() {  // 통계 기능추가
     const statsContainer = document.getElementById('statsDisplay');
@@ -255,11 +256,6 @@ function sortByIncorrectRate() {
     renderVocabulary();
 }
 
-
-
-
-
-
 async function getRandomWords() {
     const countInput = document.getElementById('randomCount');
     const count = parseInt(countInput.value);
@@ -355,6 +351,31 @@ function renderVocabulary() {
     }).join('');
 }
 function toggleDetails(wordId) { const detailsElement = document.getElementById(`details-${wordId}`); const itemElement = document.getElementById(wordId); if (detailsElement && itemElement) { detailsElement.classList.toggle('show'); itemElement.classList.toggle('revealed'); } }
+
+function filterSetButtons() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(async () => {
+        const searchTerm = document.getElementById('setSearchInput').value;
+        try {
+            const response = await fetch(`${API_BASE_URL}/wordsets/search?q=${searchTerm}`);
+            if (!response.ok) throw new Error('서버 응답 실패');
+
+            const matchingSetKeys = await response.json();
+            const matchingSet = new Set(matchingSetKeys);
+
+            const allSetButtons = document.querySelectorAll('.set-btn');
+            allSetButtons.forEach(button => {
+                if (matchingSet.has(button.textContent)) {
+                    button.style.display = '';
+                } else {
+                    button.style.display = 'none';
+                }
+            });
+        } catch (error) {
+            console.error('세트 검색 실패:', error);
+        }
+    }, 300); 
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();

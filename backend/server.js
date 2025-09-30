@@ -52,6 +52,23 @@ async function startServer() {
                 res.json(setKeys);
             } catch (e) { res.status(500).json({ message: "단어 세트 목록 조회 오류" }); }
         });
+
+         app.get('/api/wordsets/search', async (req, res) => { // 단어세트 내용 검색 필터
+            try {
+                const searchTerm = req.query.q;
+                if (!searchTerm) {
+                    const allSets = await wordsets.find({}, { projection: { _id: 1 } }).toArray();
+                    const allSetKeys = allSets.map(s => s._id);
+                    return res.json(allSetKeys);
+                }
+                const query = { content: { $regex: searchTerm, $options: 'i' } };
+                const sets = await wordsets.find(query, { projection: { _id: 1 } }).toArray();
+                const setKeys = sets.map(s => s._id);
+                res.json(setKeys);
+            } catch (e) {
+                res.status(500).json({ message: "세트 검색 중 오류 발생" });
+            }
+        });
         
         app.post('/api/wordsets', async (req, res) => {
             try {

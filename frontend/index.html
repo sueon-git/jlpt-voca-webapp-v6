@@ -62,6 +62,7 @@
         .refresh-btn { background: linear-gradient(135deg, #0097e6, #00a8ff); }
         .sort-btn { background: linear-gradient(135deg, #6c5ce7, #a29bfe); }
         .random-btn { background: linear-gradient(135deg, #fd79a8, #e84393); }
+        .search-input { width: 100%; padding: 12px 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px; font-size: 1rem; }
     </style>
 </head>
 <body>
@@ -69,6 +70,7 @@
         <div class="header"><h1><i class="fas fa-book-open"></i> JLPT 단어 목록 v6</h1><p>DB 중심 아키텍처</p></div>
         <div class="set-container">
             <h4>DB에 등록된 단어 세트</h4>
+            <input type="search" id="setSearchInput" class="search-input" placeholder="세트 내용으로 검색 (예: 중심, N3)..." onkeyup="filterSetButtons()">
             <div class="set-buttons" id="wordSetButtons"></div>
         </div>
         <div class="input-section">
