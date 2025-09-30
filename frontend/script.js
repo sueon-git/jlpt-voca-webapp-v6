@@ -293,7 +293,8 @@ function createSetButtons() {
             button.remove();                                    // 4. 제거
         }
     });
-
+    
+    filterSetButtons();
     updateSetButtons();
 }
 
