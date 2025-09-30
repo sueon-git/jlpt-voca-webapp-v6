@@ -226,7 +226,7 @@ function createSetButtons() {
     });
 
     // 이 부분의 코드를 수정합니다.
-    const buttonsToRemove = ['309', '310', '311']; // 1. 제거할 목록
+    const buttonsToRemove = ['300','301','302','303','304','305','306','307','308','309', '310', '311','401','402']; // 1. 제거할 목록
     document.querySelectorAll('.set-btn').forEach(button => {   // 2. 모든 버튼을 확인
         if (buttonsToRemove.includes(button.textContent)) {    // 3. 목록에 포함되면
             button.remove();                                    // 4. 제거
