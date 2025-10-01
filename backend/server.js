@@ -99,7 +99,7 @@ async function startServer() {
 
                 const userDoc = await userdata.findOne({ _id: 'main' });
                 const currentVocab = userDoc.data.vocabularyData || [];
-                const uniqueNewWords = wordsFromSet.filter(nw => !currentVocab.some(ew => ew.japanese === nw.japanese));
+                const uniqueNewWords = wordsFromSet;
 
                 const updateQuery = { $addToSet: { 'data.addedSets': setKey } };
                 if (uniqueNewWords.length > 0) {
