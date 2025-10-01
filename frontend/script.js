@@ -331,7 +331,7 @@ function renderVocabulary() {
         const searchTerm = document.getElementById('setSearchInput').value.trim();
         if (searchTerm) {
             // 단어의 일본어 뜻, 히라가나, 발음 중 하나라도 검색어를 포함하면 강조
-            const containsSearchTerm = [word.japanese, parts[0], parts[1], parts[2]]
+            const containsSearchTerm = [word.japanese, ...parts]
                 .some(part => part && part.toLowerCase().includes(searchTerm.toLowerCase()));
 
             if (containsSearchTerm) {
