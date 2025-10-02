@@ -2,6 +2,7 @@ let vocabularyData = [], addedSets = new Set(), incorrectCounts = {}, correctCou
 let availableSets = [];
 const API_BASE_URL = 'https://jlpt-voca-webapp-v6.onrender.com/api';
 let debounceTimer;
+let isSortDescending = true;
 
 function updateStats() {  // 통계 기능추가
     const statsContainer = document.getElementById('statsDisplay');
@@ -209,7 +210,6 @@ function sortByIncorrectRate() {
     if (vocabularyData.length < 2) return;
 
     vocabularyData.sort((a, b) => {
-        // 각 단어의 정답, 오답, 전체 횟수 계산
         const correctA = correctCounts[a.japanese] || 0;
         const incorrectA = incorrectCounts[a.japanese] || 0;
         const totalA = correctA + incorrectA;
@@ -218,7 +218,6 @@ function sortByIncorrectRate() {
         const incorrectB = incorrectCounts[b.japanese] || 0;
         const totalB = correctB + incorrectB;
 
-        // 1. 카테고리 분류 (1순위: 오답있음, 2순위: 미학습, 3순위: 정답만있음)
         const getCategory = (total, incorrect) => {
             if (incorrect > 0) return 1;
             if (total === 0) return 2;
@@ -228,31 +227,33 @@ function sortByIncorrectRate() {
         const categoryA = getCategory(totalA, incorrectA);
         const categoryB = getCategory(totalB, incorrectB);
 
-        // 카테고리별 정렬
         if (categoryA !== categoryB) {
             return categoryA - categoryB;
         }
 
-        // 같은 카테고리 내에서의 정렬 규칙
-        if (categoryA === 1) { // 1순위: 오답이 있는 단어들
+        if (categoryA === 1) {
             const rateA = incorrectA / totalA;
             const rateB = incorrectB / totalB;
-            // 오답률 내림차순
             if (rateB !== rateA) {
-                return rateB - rateA;
+                return isSortDescending ? rateB - rateA : rateA - rateB; // 정렬 방향 적용
             }
-            // 오답률 같으면, 총 시도 횟수 내림차순
-            return totalB - totalA;
+            return isSortDescending ? totalB - totalA : totalA - totalB; // 정렬 방향 적용
         }
         
-        if (categoryA === 3) { // 3순위: 정답만 있는 단어들
-            // 정답 횟수 오름차순 (적게 맞춘 것을 위로)
-            return correctA - correctB;
+        if (categoryA === 3) {
+            return isSortDescending ? correctA - correctB : correctB - correctA; // 정렬 방향 적용
         }
 
-        return 0; // 2순위: 미학습 단어들은 순서 변경 없음
+        return 0;
     });
 
+    // 정렬 방향을 뒤집고, 버튼 아이콘도 변경
+    isSortDescending = !isSortDescending;
+    const sortButtonIcon = document.querySelector('#sortBtn i');
+    if (sortButtonIcon) {
+        sortButtonIcon.className = isSortDescending ? 'fas fa-sort-amount-down' : 'fas fa-sort-amount-up';
+    }
+    
     renderVocabulary();
 }
 
