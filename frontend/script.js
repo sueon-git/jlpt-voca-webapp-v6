@@ -1,5 +1,6 @@
 let vocabularyData = [], addedSets = new Set(), incorrectCounts = {}, correctCounts = {};
 let availableSets = [];
+let availableSetData = {};
 const API_BASE_URL = 'https://jlpt-voca-webapp-v6.onrender.com/api';
 let debounceTimer;
 let isSortDescending = true;
@@ -291,15 +292,18 @@ function createSetButtons() {
 
     sortedKeys.forEach(key => {
         const button = document.createElement('button');
-        const index = availableSetData[key];
+        const stats = availableSetData[key];
+        const index = stats.index;
+        const remaining = stats.remaining;
+
         button.className = 'set-btn';
-        button.textContent = `${key} (${index.toFixed(1)})`;
-        button.dataset.setKey = key; // 실제 세트 번호는 data 속성에 저장
+        button.innerHTML = `${key} (${index.toFixed(1)}% / <span class="remaining-count">${remaining}</span>)`;
+        button.dataset.setKey = key;
         button.onclick = () => addWordSet(key);
         buttonContainer.appendChild(button);
     });
 
-    const buttonsToRemove = ['300','301','302','303','304','305','306','307','308','309', '310', '311','401','402'];
+    const buttonsToRemove = [''];
     document.querySelectorAll('.set-btn').forEach(button => {
         if (buttonsToRemove.includes(button.dataset.setKey)) {
             button.remove();
