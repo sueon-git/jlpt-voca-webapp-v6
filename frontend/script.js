@@ -209,43 +209,49 @@ async function refreshApp() {
 function sortByIncorrectRate() {
     if (vocabularyData.length < 2) return;
 
-    vocabularyData.sort((a, b) => {
-        const correctA = correctCounts[a.japanese] || 0;
-        const incorrectA = incorrectCounts[a.japanese] || 0;
-        const totalA = correctA + incorrectA;
+    if (isSortDescending) {
+        // 1. 첫 클릭 시: 복잡한 오답률 정렬 실행
+        vocabularyData.sort((a, b) => {
+            const correctA = correctCounts[a.japanese] || 0;
+            const incorrectA = incorrectCounts[a.japanese] || 0;
+            const totalA = correctA + incorrectA;
 
-        const correctB = correctCounts[b.japanese] || 0;
-        const incorrectB = incorrectCounts[b.japanese] || 0;
-        const totalB = correctB + incorrectB;
+            const correctB = correctCounts[b.japanese] || 0;
+            const incorrectB = incorrectCounts[b.japanese] || 0;
+            const totalB = correctB + incorrectB;
 
-        const getCategory = (total, incorrect) => {
-            if (incorrect > 0) return 1;
-            if (total === 0) return 2;
-            return 3;
-        };
-        
-        const categoryA = getCategory(totalA, incorrectA);
-        const categoryB = getCategory(totalB, incorrectB);
+            const getCategory = (total, incorrect) => {
+                if (incorrect > 0) return 1;
+                if (total === 0) return 2;
+                return 3;
+            };
+            
+            const categoryA = getCategory(totalA, incorrectA);
+            const categoryB = getCategory(totalB, incorrectB);
 
-        if (categoryA !== categoryB) {
-            return categoryA - categoryB;
-        }
-
-        if (categoryA === 1) {
-            const rateA = incorrectA / totalA;
-            const rateB = incorrectB / totalB;
-            if (rateB !== rateA) {
-                return isSortDescending ? rateB - rateA : rateA - rateB; // 정렬 방향 적용
+            if (categoryA !== categoryB) {
+                return categoryA - categoryB;
             }
-            return isSortDescending ? totalB - totalA : totalA - totalB; // 정렬 방향 적용
-        }
-        
-        if (categoryA === 3) {
-            return isSortDescending ? correctA - correctB : correctB - correctA; // 정렬 방향 적용
-        }
 
-        return 0;
-    });
+            if (categoryA === 1) {
+                const rateA = incorrectA / totalA;
+                const rateB = incorrectB / totalB;
+                if (rateB !== rateA) {
+                    return rateB - rateA;
+                }
+                return totalB - totalA;
+            }
+            
+            if (categoryA === 3) {
+                return correctA - correctB;
+            }
+
+            return 0;
+        });
+    } else {
+        // 2. 두 번째 클릭 시: 현재 순서를 그냥 뒤집기
+        vocabularyData.reverse();
+    }
 
     // 정렬 방향을 뒤집고, 버튼 아이콘도 변경
     isSortDescending = !isSortDescending;
