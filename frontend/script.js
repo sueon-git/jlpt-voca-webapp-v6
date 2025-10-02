@@ -223,9 +223,9 @@ function sortByIncorrectRate() {
             const totalB = correctB + incorrectB;
 
             const getCategory = (total, incorrect) => {
-                if (incorrect > 0) return 1;
-                if (total === 0) return 2;
-                return 3;
+                if (incorrect > 0) return 1; // 오답률 정렬 1순위 : 오답이 있는 경우 
+                if (total === 0) return 3; // 오답률 정렬 3순위 : 미학습 (카운트=='0', 제로)
+                return 2; // 오답률 정렬 2순위 : 정답만 있는 경우 
             };
             
             const categoryA = getCategory(totalA, incorrectA);
