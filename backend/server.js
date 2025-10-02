@@ -47,10 +47,36 @@ async function startServer() {
 
         app.get('/api/wordsets', async (req, res) => {
             try {
-                const sets = await wordsets.find({}, { projection: { _id: 1 } }).toArray();
-                const setKeys = sets.map(s => s._id).sort((a, b) => Number(a) - Number(b));
-                res.json(setKeys);
-            } catch (e) { res.status(500).json({ message: "단어 세트 목록 조회 오류" }); }
+                const userDoc = await userdata.findOne({ _id: 'main' });
+                const correctCounts = userDoc?.data?.correctCounts || {};
+                const incorrectCounts = userDoc?.data?.incorrectCounts || {};
+                
+                const allSets = await wordsets.find({}).toArray();
+                const setIndices = {};
+
+                allSets.forEach(setDoc => {
+                    const lines = setDoc.content.split('\n').filter(line => line.trim());
+                    let totalReviews = 0;
+                    const wordCount = lines.length;
+
+                    if (wordCount > 0) {
+                        lines.forEach(line => {
+                            const title = line.split(',')[0].trim();
+                            const correct = correctCounts[title] || 0;
+                            const incorrect = incorrectCounts[title] || 0;
+                            totalReviews += (correct + incorrect);
+                        });
+                        setIndices[setDoc._id] = totalReviews / wordCount;
+                    } else {
+                        setIndices[setDoc._id] = 0;
+                    }
+                });
+                
+                res.json(setIndices);
+            } catch (e) {
+                console.error("세트오픈지수 계산 오류:", e);
+                res.status(500).json({ message: "단어 세트 목록 조회 오류" });
+            }
         });
 
          app.get('/api/wordsets/search', async (req, res) => { // 단어세트 내용 검색 필터

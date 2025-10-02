@@ -36,7 +36,8 @@ async function initializeApp() {
         addedSets = new Set(userData.addedSets || []);
         incorrectCounts = userData.incorrectCounts || {};
         correctCounts = userData.correctCounts || {};
-        availableSets = setsData || [];
+        availableSetData = setsData || {};
+        availableSets = Object.keys(availableSetData);
         
         createSetButtons();
         renderVocabulary();
@@ -285,22 +286,26 @@ async function getRandomWords() {
 function createSetButtons() {
     const buttonContainer = document.getElementById('wordSetButtons');
     buttonContainer.innerHTML = '';
-    availableSets.sort((a, b) => Number(a) - Number(b)).forEach(key => {
+    
+    const sortedKeys = Object.keys(availableSetData).sort((a, b) => Number(a) - Number(b));
+
+    sortedKeys.forEach(key => {
         const button = document.createElement('button');
+        const index = availableSetData[key];
         button.className = 'set-btn';
-        button.textContent = key;
+        button.textContent = `${key} (${index.toFixed(1)})`;
+        button.dataset.setKey = key; // 실제 세트 번호는 data 속성에 저장
         button.onclick = () => addWordSet(key);
         buttonContainer.appendChild(button);
     });
 
-    // 이 부분의 코드를 수정 (단어세트 제거용 코드)
-    const buttonsToRemove = ['300','301','302','303','304','305','306','307','308','309', '310', '311','401','402']; // 1. 제거할 목록
-    document.querySelectorAll('.set-btn').forEach(button => {   // 2. 모든 버튼을 확인
-        if (buttonsToRemove.includes(button.textContent)) {    // 3. 목록에 포함되면
-            button.remove();                                    // 4. 제거
+    const buttonsToRemove = ['300','301','302','303','304','305','306','307','308','309', '310', '311','401','402'];
+    document.querySelectorAll('.set-btn').forEach(button => {
+        if (buttonsToRemove.includes(button.dataset.setKey)) {
+            button.remove();
         }
     });
-    
+
     filterSetButtons();
     updateSetButtons();
 }
@@ -308,7 +313,7 @@ function createSetButtons() {
 function updateSetButtons() {
     const buttons = document.querySelectorAll('.set-btn');
     buttons.forEach(button => {
-        const setKey = button.textContent;
+        const setKey = button.dataset.setKey;
         if (addedSets.has(setKey)) {
             button.classList.add('added');
             button.disabled = true;
@@ -387,7 +392,7 @@ function filterSetButtons() {
 
             const allSetButtons = document.querySelectorAll('.set-btn');
             allSetButtons.forEach(button => {
-                if (matchingSet.has(button.textContent)) {
+                if (matchingSet.has(button.dataset.setKey)) {
                     button.style.display = '';
                 } else {
                     button.style.display = 'none';
