@@ -244,7 +244,7 @@ function sortByIncorrectRate() {
                 return totalB - totalA;
             }
             
-            if (categoryA === 3) {
+            if (categoryA === 2) {
                 return correctA - correctB;
             }
 
