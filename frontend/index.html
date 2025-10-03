@@ -65,6 +65,10 @@
         .search-input { width: 100%; padding: 12px 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px; font-size: 1rem; }
         .highlight-search { background-color: #fff59d; color: #424242; padding: 2px 4px; border-radius: 4px; font-weight: bold; }
         .remaining-count { color: #e67e22; font-weight: bold; }
+        .stepper-container { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .stepper-btn { width: 30px; height: 30px; border: 1px solid #ccc; background-color: white; border-radius: 50%; font-size: 1.2rem; cursor: pointer; }
+        .stepper-label { font-weight: 600; color: #333; }
+        #thresholdValue { font-weight: bold; font-size: 1.2rem; color: #e67e22; }
     </style>
 </head>
 <body>
@@ -72,6 +76,15 @@
         <div class="header"><h1><i class="fas fa-book-open"></i> JLPT 단어 목록 v6</h1><p>DB 중심 아키텍처</p></div>
         <div class="set-container">
             <h4>DB에 등록된 단어 세트</h4>
+
+            <div class="stepper-container">
+                <span class="stepper-label">시행 횟수</span>
+                <button class="stepper-btn" onclick="changeThreshold(-1)">-</button>
+                <span id="thresholdValue">0</span>
+                <button class="stepper-btn" onclick="changeThreshold(1)">+</button>
+                <span class="stepper-label">이하 카드 개수 보기</span>
+            </div>
+
             <input type="search" id="setSearchInput" class="search-input" placeholder="세트 내용으로 검색 (예: 중심, N3)..." onkeyup="filterSetButtons()">
             <div class="set-buttons" id="wordSetButtons"></div>
         </div>

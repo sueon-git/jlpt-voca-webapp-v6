@@ -4,6 +4,7 @@ let availableSetData = {};
 const API_BASE_URL = 'https://jlpt-voca-webapp-v6.onrender.com/api';
 let debounceTimer;
 let isSortDescending = true;
+let currentThreshold = 0;
 
 function updateStats() {  // 통계 기능추가
     const statsContainer = document.getElementById('statsDisplay');
@@ -22,25 +23,40 @@ function updateStats() {  // 통계 기능추가
         statsContainer.innerHTML = '';
     }
 }
+//  함수 추가 (스태퍼 값 변경 및 데이터 요청)
+async function changeThreshold(amount) {
+    currentThreshold += amount;
+    if (currentThreshold < 0) currentThreshold = 0;
+    document.getElementById('thresholdValue').textContent = currentThreshold;
+    await updateSetCounts();
+}
+
+//  함수 추가 (서버에 통계 데이터 요청)
+async function updateSetCounts() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/wordsets?threshold=${currentThreshold}`);
+        const setsData = await response.json();
+        availableSetData = setsData || {};
+        availableSets = Object.keys(availableSetData);
+        createSetButtons();
+    } catch (error) {
+        console.error('세트 카운트 업데이트 실패:', error);
+    }
+}
 
 async function initializeApp() {
     try {
-        const [userDataRes, setsDataRes] = await Promise.all([
-            fetch(`${API_BASE_URL}/userdata`),
-            fetch(`${API_BASE_URL}/wordsets`)
-        ]);
-        
+        // wordsets fetch를 분리
+        const userDataRes = await fetch(`${API_BASE_URL}/userdata`);
         const userData = await userDataRes.json();
-        const setsData = await setsDataRes.json();
-
+        
         vocabularyData = userData.vocabularyData || [];
         addedSets = new Set(userData.addedSets || []);
         incorrectCounts = userData.incorrectCounts || {};
         correctCounts = userData.correctCounts || {};
-        availableSetData = setsData || {};
-        availableSets = Object.keys(availableSetData);
         
-        createSetButtons();
+        await updateSetCounts(); 
+
         renderVocabulary();
     } catch (error) {
         console.error('앱 초기화 실패:', error);
@@ -292,17 +308,14 @@ function createSetButtons() {
 
     sortedKeys.forEach(key => {
         const button = document.createElement('button');
-        const stats = availableSetData[key];
-        const index = stats.index;
-        const remaining = stats.remaining;
+        const count = availableSetData[key];
 
         button.className = 'set-btn';
-        button.innerHTML = `${key} (${index.toFixed(1)}% / <span class="remaining-count">${remaining}</span>)`;
+        button.innerHTML = `${key} (<span class="remaining-count">${count}</span>)`;
         button.dataset.setKey = key;
         button.onclick = () => addWordSet(key);
         buttonContainer.appendChild(button);
     });
-
     const buttonsToRemove = [''];
     document.querySelectorAll('.set-btn').forEach(button => {
         if (buttonsToRemove.includes(button.dataset.setKey)) {

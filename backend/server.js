@@ -47,45 +47,40 @@ async function startServer() {
 
         app.get('/api/wordsets', async (req, res) => {
             try {
+             const threshold = parseInt(req.query.threshold) || 0; // URL 파라미터에서 X값 받기
+
              const userDoc = await userdata.findOne({ _id: 'main' });
              const correctCounts = userDoc?.data?.correctCounts || {};
              const incorrectCounts = userDoc?.data?.incorrectCounts || {};
-        
+
              const allSets = await wordsets.find({}).toArray();
              const setStats = {};
+             const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
 
              allSets.forEach(setDoc => {
-             const lines = setDoc.content.split('\n').filter(line => line.trim());
-             let totalReviews = 0;
-             let unstudiedInSet = 0; // '학습 전' 단어 카운트용 변수
-             const wordCount = lines.length;
+                const lines = setDoc.content.split('\n').filter(line => line.trim());
+                let belowThresholdCount = 0;
 
-             if (wordCount > 0) {
                 lines.forEach(line => {
-                    const title = line.split(',')[0].trim();
-                    const correct = correctCounts[title] || 0;
-                    const incorrect = incorrectCounts[title] || 0;
-                    totalReviews += (correct + incorrect);
+                    const parts = line.split(',').map(p => p.trim());
+                    if (parts.length < 2) return;
 
-                    // 정답, 오답 카운트가 모두 0이면 '학습 전'으로 카운트
-                    if (correct === 0 && incorrect === 0) {
-                        unstudiedInSet++;
+                    const actualJapaneseWord = japaneseRegex.test(parts[0]) ? parts[0] : parts[1];
+                    const correct = correctCounts[actualJapaneseWord] || 0;
+                    const incorrect = incorrectCounts[actualJapaneseWord] || 0;
+                
+                    if ((correct + incorrect) <= threshold) {
+                        belowThresholdCount++;
                     }
-                 });
-                 setStats[setDoc._id] = {
-                    index: totalReviews / wordCount,
-                    remaining: unstudiedInSet // 'remaining' 키에 '학습 전' 개수를 담아 보냄
-                 };
-                 } else {
-                 setStats[setDoc._id] = { index: 0, remaining: 0 };
-                 }
-             });
+                });
+                setStats[setDoc._id] = belowThresholdCount;
+            });
         
-             res.json(setStats);
-          } catch (e) {
-          console.error("세트 통계 계산 오류:", e);
-          res.status(500).json({ message: "단어 세트 목록 조회 오류" });
-          }
+            res.json(setStats);
+            } catch (e) {
+                console.error("세트 통계 계산 오류:", e);
+                res.status(500).json({ message: "단어 세트 목록 조회 오류" });
+            }
         });
 
          app.get('/api/wordsets/search', async (req, res) => { // 단어세트 내용 검색 필터
