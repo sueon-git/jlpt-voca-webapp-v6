@@ -68,7 +68,7 @@
         .stepper-container { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; }
         .stepper-btn { width: 30px; height: 30px; border: 1px solid #ccc; background-color: white; border-radius: 50%; font-size: 1.2rem; cursor: pointer; }
         .stepper-label { font-weight: 600; color: #333; }
-        #thresholdValue { font-weight: bold; font-size: 1.2rem; color: #e67e22; }
+        #thresholdValue { width: 60px; padding: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 1.1rem; text-align: center; font-weight: bold; color: #e67e22; }
     </style>
 </head>
 <body>
@@ -80,7 +80,7 @@
             <div class="stepper-container">
                 <span class="stepper-label">시행 횟수</span>
                 <button class="stepper-btn" onclick="changeThreshold(-1)">-</button>
-                <span id="thresholdValue">0</span>
+                <input type="number" id="thresholdValue" value="0" min="0">
                 <button class="stepper-btn" onclick="changeThreshold(1)">+</button>
                 <span class="stepper-label">이하 카드 개수 보기</span>
             </div>

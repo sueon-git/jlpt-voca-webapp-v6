@@ -24,11 +24,16 @@ function updateStats() {  // 통계 기능추가
     }
 }
 //  함수 추가 (스태퍼 값 변경 및 데이터 요청)
-async function changeThreshold(amount) {
-    currentThreshold += amount;
-    if (currentThreshold < 0) currentThreshold = 0;
-    document.getElementById('thresholdValue').textContent = currentThreshold;
-    await updateSetCounts();
+function changeThreshold(amount) {
+    const thresholdInput = document.getElementById('thresholdValue');
+    let currentValue = parseInt(thresholdInput.value) || 0;
+    
+    currentValue += amount;
+    if (currentValue < 0) currentValue = 0;
+    
+    thresholdInput.value = currentValue;
+    currentThreshold = currentValue; // 전역 변수 업데이트
+    updateSetCounts(); // 데이터 다시 불러오기
 }
 
 //  함수 추가 (서버에 통계 데이터 요청)
@@ -427,6 +432,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (batchAddBtn) {
         batchAddBtn.textContent = '세트 등록';
         batchAddBtn.onclick = addSetToDatabase;
+    }
+    const thresholdInput = document.getElementById('thresholdValue');
+    if (thresholdInput) {
+        thresholdInput.addEventListener('change', () => {
+            currentThreshold = parseInt(thresholdInput.value) || 0;
+            if (currentThreshold < 0) {
+                currentThreshold = 0;
+                thresholdInput.value = 0;
+            }
+            updateSetCounts();
+        });
     }
 });
 
