@@ -148,10 +148,15 @@ async function markCorrect(event, wordId) {
     event.stopPropagation();
     const word = vocabularyData.find(w => w.id === wordId);
     if (word) {
-        const newCount = (correctCounts[word.japanese] || 0) + 1;
-        const success = await postRequest('/correct/update', { word: word.japanese, count: newCount });
+       
+        const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
+        // 제목(word.japanese)이 일본어인지, 뜻(parts[0])이 일본어인지 확인하여 실제 일본어 단어를 찾음
+        const actualJapaneseWord = japaneseRegex.test(word.japanese) ? word.japanese : word.parts[0];
+
+        const newCount = (correctCounts[actualJapaneseWord] || 0) + 1;
+        const success = await postRequest('/correct/update', { word: actualJapaneseWord, count: newCount });
         if (success) {
-            correctCounts[word.japanese] = newCount;
+            correctCounts[actualJapaneseWord] = newCount;
             preserveOpenCards(renderVocabulary);
         }
     }
@@ -161,10 +166,15 @@ async function markIncorrect(event, wordId) {
     event.stopPropagation();
     const word = vocabularyData.find(w => w.id === wordId);
     if (word) {
-        const newCount = (incorrectCounts[word.japanese] || 0) + 1;
-        const success = await postRequest('/incorrect/update', { word: word.japanese, count: newCount });
+        
+        const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
+        // 제목(word.japanese)이 일본어인지, 뜻(parts[0])이 일본어인지 확인하여 실제 일본어 단어를 찾음
+        const actualJapaneseWord = japaneseRegex.test(word.japanese) ? word.japanese : word.parts[0];
+
+        const newCount = (incorrectCounts[actualJapaneseWord] || 0) + 1;
+        const success = await postRequest('/incorrect/update', { word: actualJapaneseWord, count: newCount });
         if (success) {
-            incorrectCounts[word.japanese] = newCount;
+            incorrectCounts[actualJapaneseWord] = newCount;
             preserveOpenCards(renderVocabulary);
         }
     }
