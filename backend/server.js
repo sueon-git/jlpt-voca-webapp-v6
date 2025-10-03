@@ -63,11 +63,11 @@ async function startServer() {
 
                 lines.forEach(line => {
                     const parts = line.split(',').map(p => p.trim());
-                    if (parts.length < 2) return;
+                    if (parts.length < 1) return;
 
-                    const actualJapaneseWord = japaneseRegex.test(parts[0]) ? parts[0] : parts[1];
-                    const correct = correctCounts[actualJapaneseWord] || 0;
-                    const incorrect = incorrectCounts[actualJapaneseWord] || 0;
+                    const title = parts[0];
+                    const correct = correctCounts[title] || 0;
+                    const incorrect = incorrectCounts[title] || 0;
                 
                     if ((correct + incorrect) <= threshold) {
                         belowThresholdCount++;
