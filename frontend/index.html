@@ -62,6 +62,8 @@
         .refresh-btn { background: linear-gradient(135deg, #0097e6, #00a8ff); }
         .sort-btn { background: linear-gradient(135deg, #6c5ce7, #a29bfe); }
         .random-btn { background: linear-gradient(135deg, #fd79a8, #e84393); }
+        /* 시행횟수 정렬 버튼 추가 */
+        .attempt-sort-btn { background: linear-gradient(135deg, #81ecec, #00cec9); }
         .search-input { width: 100%; padding: 12px 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px; font-size: 1rem; }
         .highlight-search { background-color: #fff59d; color: #424242; padding: 2px 4px; border-radius: 4px; font-weight: bold; }
         .remaining-count { color: #e67e22; font-weight: bold; }
@@ -112,7 +114,9 @@
                         <button class="btn sort-btn" id="sortBtn" onclick="sortByIncorrectRate()">
                             <i class="fas fa-percentage"></i> 오답률 정렬
                         </button>
-                        
+                        <button class="btn attempt-sort-btn" id="attemptSortBtn" onclick="sortByAttemptCount()">
+                            <i class="fas fa-sort-numeric-down"></i> 시행횟수 정렬
+                        </button>
                     </div>
                 </div>
             </div>

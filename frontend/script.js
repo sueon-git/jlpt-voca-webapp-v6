@@ -4,6 +4,7 @@ let availableSetData = {};
 const API_BASE_URL = 'https://jlpt-voca-webapp-v6.onrender.com/api';
 let debounceTimer;
 let isSortDescending = true;
+let isAttemptSortAscending = true;
 let currentThreshold = 0;
 
 function updateStats() {  // 통계 기능추가
@@ -286,6 +287,39 @@ function sortByIncorrectRate() {
     renderVocabulary();
 }
 
+// 시행횟수 정렬 함수 추가 
+function sortByAttemptCount() {
+    if (vocabularyData.length < 2) return;
+
+    vocabularyData.sort((a, b) => {
+        const correctA = correctCounts[a.japanese] || 0;
+        const incorrectA = incorrectCounts[a.japanese] || 0;
+        const totalA = correctA + incorrectA;
+
+        const correctB = correctCounts[b.japanese] || 0;
+        const incorrectB = incorrectCounts[b.japanese] || 0;
+        const totalB = correctB + incorrectB;
+
+        // 1. 주 정렬: 총 시행 횟수 비교
+        if (totalA !== totalB) {
+            // isAttemptSortAscending이 true이면 오름차순, false이면 내림차순
+            return isAttemptSortAscending ? totalA - totalB : totalB - totalA;
+        }
+        
+        // 2. 부 정렬: 시행 횟수가 같으면 오답이 많은 순서대로 (내림차순)
+        return incorrectB - incorrectA;
+    });
+
+    // 정렬 방향을 뒤집고, 버튼 아이콘도 변경
+    isAttemptSortAscending = !isAttemptSortAscending;
+    const sortButtonIcon = document.querySelector('#attemptSortBtn i');
+    if (sortButtonIcon) {
+        sortButtonIcon.className = isAttemptSortAscending ? 'fas fa-sort-numeric-down' : 'fas fa-sort-numeric-up';
+    }
+    
+    renderVocabulary();
+}
+
 async function getRandomWords() {
     const countInput = document.getElementById('randomCount');
     const count = parseInt(countInput.value);
@@ -353,6 +387,7 @@ function renderVocabulary() {
     document.getElementById('deleteAllBtn').disabled = vocabularyData.length === 0;
     document.getElementById('shuffleBtn').disabled = vocabularyData.length < 2;
     document.getElementById('sortBtn').disabled = vocabularyData.length < 2;
+    document.getElementById('attemptSortBtn').disabled = vocabularyData.length < 2;
     if (vocabularyData.length === 0) {
         listContainer.innerHTML = `<div class="empty-state"><h3>학습할 단어가 없습니다.</h3></div>`;
         return;
