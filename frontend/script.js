@@ -322,20 +322,37 @@ function sortByAttemptCount() {
 
 async function getRandomWords() {
     const countInput = document.getElementById('randomCount');
+    const startInput = document.getElementById('randomStartNum');
+    const endInput = document.getElementById('randomEndNum');
+    
     const count = parseInt(countInput.value);
+    const start = parseInt(startInput.value);
+    const end = parseInt(endInput.value);
+
     if (!count || count < 1) {
         alert('추출할 단어의 개수를 1 이상으로 입력해주세요.');
         return;
     }
-    if (!confirm(`현재 학습 목록을 지우고, 전체 DB에서 ${count}개의 단어를 무작위로 가져옵니다. 계속하시겠습니까?`)) {
+    
+    let confirmMessage = `현재 학습 목록을 지우고, `;
+    if (start && end) {
+        confirmMessage += `${start} ~ ${end}번 세트에서 ${count}개의 단어를 무작위로 가져옵니다.`;
+    } else {
+        confirmMessage += `전체 DB에서 ${count}개의 단어를 무작위로 가져옵니다.`;
+    }
+    confirmMessage += ` 계속하시겠습니까?`;
+
+    if (!confirm(confirmMessage)) {
         return;
     }
-    const success = await postRequest('/userdata/random-set', { count });
+
+    const success = await postRequest('/userdata/random-set', { count, start, end });
+
     if (success) {
         alert(`${count}개의 랜덤 단어를 불러왔습니다!`);
         await initializeApp();
     } else {
-        alert('랜덤 단어를 불러오는 데 실패했습니다.');
+        alert('랜덤 단어를 불러오는 데 실패했습니다. (범위 내에 세트가 없는지 확인해주세요)');
     }
 }
 

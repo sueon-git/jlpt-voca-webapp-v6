@@ -125,9 +125,12 @@
             <h4>랜덤 단어 추출 & 순서 섞기</h4>
             <div class="range-input-group">
                 <span id="statsDisplay" style="margin-right: auto; font-weight: 600; color: #3d3d3d; align-self: center;"></span>
+                <input type="number" id="randomStartNum" class="range-input" placeholder="시작(세트)">
+                <span>~</span>
+                <input type="number" id="randomEndNum" class="range-input" placeholder="끝(세트)">
                 <input type="number" id="randomCount" class="range-input" placeholder="추출할 개수">
                 <button class="btn random-btn" onclick="getRandomWords()">
-                   <i class="fas fa-random"></i> 랜덤 추출
+                    <i class="fas fa-random"></i> 랜덤 추출
                 </button>
                 <button class="btn shuffle-btn" id="shuffleBtn" onclick="shuffleWords()">순서 섞기</button>
             </div>

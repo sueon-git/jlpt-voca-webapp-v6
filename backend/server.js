@@ -182,15 +182,25 @@ async function startServer() {
         
         app.post('/api/userdata/random-set', async (req, res) => {
             try {
-                const { count } = req.body;
+                const { count, start, end } = req.body;
                 if (!count || count < 1) {
                     return res.status(400).json({ message: '올바른 개수를 입력해주세요.' });
                 }
 
-                const allSets = await wordsets.find({}).toArray();
+                // 범위가 지정되었다면, 해당 범위의 세트만 가져오도록 쿼리 수정
+                const query = {};
+                if (start && end) {
+                    const setKeysInRange = [];
+                    for (let i = start; i <= end; i++) {
+                        setKeysInRange.push(String(i));
+                    }
+                    query._id = { $in: setKeysInRange };
+                }
+
+                const targetSets = await wordsets.find(query).toArray();
                 let allWords = [];
 
-                allSets.forEach(setDoc => {
+                targetSets.forEach(setDoc => {
                     const lines = setDoc.content.split('\n').filter(line => line.trim());
                     lines.forEach(line => {
                         const parts = line.split(',').map(part => part.trim());
@@ -201,12 +211,16 @@ async function startServer() {
                         }
                     });
                 });
+        
+                if (allWords.length === 0) {
+                    return res.status(404).json({ message: '해당 범위에 단어 세트가 없습니다.' });
+                }
 
                 for (let i = allWords.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [allWords[i], allWords[j]] = [allWords[j], allWords[i]];
                 }
-                
+        
                 const randomSample = allWords.slice(0, count);
 
                 await userdata.updateOne(
@@ -214,7 +228,7 @@ async function startServer() {
                     { $set: { 'data.vocabularyData': randomSample, 'data.addedSets': [] } },
                     { upsert: true }
                 );
-                
+        
                 res.status(200).json({ message: '랜덤 단어 목록 생성 성공' });
             } catch (e) {
                 console.error(e);
