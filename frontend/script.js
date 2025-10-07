@@ -6,6 +6,7 @@ let debounceTimer;
 let isSortDescending = true;
 let isAttemptSortAscending = true;
 let currentThreshold = 0;
+let newlyAddedWords = new Map();
 
 function updateStats() {  // 통계 기능추가
     const statsContainer = document.getElementById('statsDisplay');
@@ -414,15 +415,21 @@ function renderVocabulary() {
         const parts = word.parts || [];
 
         let displayTitle = title;
-        const searchTerm = document.getElementById('setSearchInput').value.trim();
-        if (searchTerm) {
-            // 단어의 일본어 뜻, 히라가나, 발음 중 하나라도 검색어를 포함하면 강조
-            const containsSearchTerm = [word.japanese, ...parts]
-                .some(part => part && part.toLowerCase().includes(searchTerm.toLowerCase()));
+        const sourceInfo = newlyAddedWords.get(word.id);
 
-            if (containsSearchTerm) {
-                // <span class="highlight-search"> 태그로 감싸서 분홍색으로 표시
-                displayTitle = `<span class="highlight-search">${title}</span>`;
+        if (sourceInfo) {
+            // 새로 추가된 단어일 경우, 파란색 배경과 위치 정보 추가
+            const sourceText = `<span class="source-info">(${sourceInfo.set}-${sourceInfo.index})</span>`;
+            displayTitle = `<span class="highlight-new-word">${title}</span> ${sourceText}`;
+        } else {
+            // 기존 검색 하이라이트 기능은 그대로 유지
+            const searchTerm = document.getElementById('setSearchInput').value.trim();
+            if (searchTerm) {
+                const containsSearchTerm = [word.japanese, ...parts]
+                    .some(part => part && part.toLowerCase().includes(searchTerm.toLowerCase()));
+                if (containsSearchTerm) {
+                    displayTitle = `<span class="highlight-search">${title}</span>`;
+                }
             }
         }
 
@@ -450,7 +457,9 @@ function renderVocabulary() {
         const incorrectBadge = incorrectCount > 0 ? `<span class="incorrect-badge">${incorrectCount}</span>` : '';
         return `<div class="vocab-item" id="${word.id}" onclick="toggleDetails('${word.id}')"><div class="vocab-header"><div><span class="japanese-word">${displayTitle}</span>${correctBadge}${incorrectBadge}</div><div><button class="correct-btn" onclick="markCorrect(event, '${word.id}')">정답</button><button class="incorrect-btn" onclick="markIncorrect(event, '${word.id}')">오답</button><button class="delete-btn" onclick="deleteWord(event, '${word.id}')">&times;</button></div></div><div class="vocab-details" id="details-${word.id}"><div class="vocab-main-details"><p><strong>뜻:</strong> ${korean}</p><p><strong>히라가나:</strong> ${hiragana}</p><p><strong>발음:</strong> ${pronunciation}</p></div>${kanjiHtml ? `<div class="kanji-details">${kanjiHtml}</div>` : ''}</div></div>`;
     }).join('');
+    newlyAddedWords.clear();
 }
+
 function toggleDetails(wordId) { const detailsElement = document.getElementById(`details-${wordId}`); const itemElement = document.getElementById(wordId); if (detailsElement && itemElement) { detailsElement.classList.toggle('show'); itemElement.classList.toggle('revealed'); } }
 
 function filterSetButtons() {
@@ -482,28 +491,33 @@ function filterSetButtons() {
 async function searchAndAddWords() {
     const searchInput = document.getElementById('wordSearchInput');
     const searchTerm = searchInput.value.trim();
-
     if (!searchTerm) {
         alert('검색어를 입력해주세요.');
         return;
     }
 
-    const success = await postRequest('/userdata/search-and-add', { searchTerm });
-
-    if (success) {
-        // 성공 시, 서버로부터의 정확한 메시지를 받아오기 위해 응답을 JSON으로 파싱
+    try {
         const response = await fetch(`${API_BASE_URL}/userdata/search-and-add`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ searchTerm })
         });
+
         const result = await response.json();
         alert(result.message);
+
+        if (response.ok && result.newWords) {
+            // 새로 추가된 단어 정보를 Map에 저장 (id를 key로)
+            result.newWords.forEach(word => {
+                newlyAddedWords.set(word.id, word.source);
+            });
+        }
         
-        searchInput.value = ''; // 검색창 비우기
-        await initializeApp(); // 화면 전체 새로고침
-    } else {
+        searchInput.value = '';
+        await initializeApp();
+    } catch (error) {
         alert('단어 검색 및 추가에 실패했습니다.');
+        console.error(error);
     }
 }
 

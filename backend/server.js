@@ -238,50 +238,48 @@ async function startServer() {
 
         app.post('/api/userdata/search-and-add', async (req, res) => {
             try {
-             const { searchTerm } = req.body;
+                const { searchTerm } = req.body;
                 if (!searchTerm) {
                     return res.status(400).json({ message: '검색어를 입력해주세요.' });
                 }
 
-                // 1. DB에서 검색어로 단어 찾기
                 const query = { content: { $regex: searchTerm, $options: 'i' } };
                 const matchingSets = await wordsets.find(query).toArray();
                 let foundWords = [];
+
                 matchingSets.forEach(doc => {
                     const lines = doc.content.split('\n');
-                    const filteredLines = lines.filter(line => line.toLowerCase().includes(searchTerm.toLowerCase()));
-                    filteredLines.forEach(line => {
-                        const parts = line.split(',').map(part => part.trim());
-                        if (parts.length >= 4) {
-                            const title = parts[0];
-                            const restOfParts = parts.slice(1);
-                            foundWords.push({ id: crypto.randomUUID(), japanese: title, parts: restOfParts });
+                    lines.forEach((line, index) => {
+                        if (line.toLowerCase().includes(searchTerm.toLowerCase())) {
+                            const parts = line.split(',').map(part => part.trim());
+                            if (parts.length >= 4) {
+                                const title = parts[0];
+                                const restOfParts = parts.slice(1);
+                                foundWords.push({ 
+                                    id: crypto.randomUUID(), 
+                                    japanese: title, 
+                                    parts: restOfParts,
+                                    source: { set: doc._id, index: index + 1 } // 위치 정보 추가
+                                });
+                            }
                         }
                     });
                 });
 
-                // 2. 현재 사용자의 단어 목록 가져오기
                 const userDoc = await userdata.findOne({ _id: 'main' });
                 const currentVocab = userDoc?.data?.vocabularyData || [];
                 const currentVocabTitles = new Set(currentVocab.map(word => word.japanese));
-
-                // 3. 이미 학습 목록에 있는 단어는 제외
+        
                 const newWordsToAdd = foundWords.filter(word => !currentVocabTitles.has(word.japanese));
 
                 if (newWordsToAdd.length === 0) {
-                    return res.status(200).json({ message: '새롭게 추가할 단어가 없습니다. (이미 학습 목록에 포함)' });
+                    return res.status(200).json({ message: '새롭게 추가할 단어가 없습니다. (이미 학습 목록에 포함)', newWords: [] });
                 }
 
-                // 4. 새로운 단어를 기존 목록의 맨 앞에 추가하여 새 목록 생성
                 const updatedVocab = [...newWordsToAdd, ...currentVocab];
-
-                // 5. DB 업데이트
-                await userdata.updateOne(
-                    { _id: 'main' },
-                    { $set: { 'data.vocabularyData': updatedVocab } }
-                );
+                await userdata.updateOne({ _id: 'main' }, { $set: { 'data.vocabularyData': updatedVocab } });
         
-             res.status(200).json({ message: `${newWordsToAdd.length}개의 단어를 학습 목록에 추가했습니다.` });
+                res.status(200).json({ message: `${newWordsToAdd.length}개의 단어를 학습 목록에 추가했습니다.`, newWords: newWordsToAdd });
             } catch (e) {
                 console.error(e);
                 res.status(500).json({ message: '단어 검색 및 추가 중 오류 발생' });
