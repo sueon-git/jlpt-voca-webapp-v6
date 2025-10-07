@@ -263,14 +263,21 @@ async function startServer() {
                                     parts: restOfParts,
                                     source: { set: doc._id, index: index + 1 }
                                 });
+                                foundWords.sort((a, b) => {
+                                    const setCompare = Number(a.source.set) - Number(b.source.set);
+                                    if (setCompare !== 0) {
+                                        return setCompare;
+                                    }
+                                    return a.source.index - b.source.index;
+                                });     
                             }
                         }
                     });
                 });
 
-              const userDoc = await userdata.findOne({ _id: 'main' });
-              const currentVocab = userDoc?.data?.vocabularyData || [];
-              const currentVocabTitles = new Set(currentVocab.map(word => word.japanese));
+                const userDoc = await userdata.findOne({ _id: 'main' });
+                const currentVocab = userDoc?.data?.vocabularyData || [];
+                const currentVocabTitles = new Set(currentVocab.map(word => word.japanese));
         
                 const newWordsToAdd = foundWords.filter(word => !currentVocabTitles.has(word.japanese));
 
