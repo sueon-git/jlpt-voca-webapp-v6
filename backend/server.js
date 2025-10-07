@@ -249,31 +249,33 @@ async function startServer() {
 
                 matchingSets.forEach(doc => {
                     const lines = doc.content.split('\n');
+                    // 각 줄(line) 전체 내용에서 검색어가 포함되어 있는지 확인
                     lines.forEach((line, index) => {
-                        if (line.toLowerCase().includes(searchTerm.toLowerCase())) {
-                            const parts = line.split(',').map(part => part.trim());
-                            if (parts.length >= 2) { 
-                                const title = parts[0];
-                                const restOfParts = parts.slice(1);
-                                foundWords.push({ 
-                                    id: crypto.randomUUID(), 
-                                    japanese: title, 
-                                    parts: restOfParts,
-                                    source: { set: doc._id, index: index + 1 }
-                                });
-                            }
-                        }
-                    });
+                        if (line.toLowerCase().includes(searchTerm.toLowerCase())) {
+                            const parts = line.split(',').map(part => part.trim());
+                            // 쉼표가 1개 이상 있어서 최소 2개의 파트가 나오면 카드로 인정
+                            if (parts.length >= 2) { 
+                                const title = parts[0];
+                                const restOfParts = parts.slice(1);
+                                foundWords.push({ 
+                                    id: crypto.randomUUID(), 
+                                    japanese: title, 
+                                    parts: restOfParts,
+                                    source: { set: doc._id, index: index + 1 }
+                                });
+                            }
+                        }
+                    });
                 });
 
-                const userDoc = await userdata.findOne({ _id: 'main' });
-                const currentVocab = userDoc?.data?.vocabularyData || [];
-                const currentVocabTitles = new Set(currentVocab.map(word => word.japanese));
+              const userDoc = await userdata.findOne({ _id: 'main' });
+              const currentVocab = userDoc?.data?.vocabularyData || [];
+              const currentVocabTitles = new Set(currentVocab.map(word => word.japanese));
         
                 const newWordsToAdd = foundWords.filter(word => !currentVocabTitles.has(word.japanese));
 
                 if (newWordsToAdd.length === 0) {
-                    return res.status(200).json({ message: '새롭게 추가할 단어가 없습니다. (이미 학습 목록에 포함)', newWords: [] });
+                 return res.status(200).json({ message: '새롭게 추가할 단어가 없습니다. (이미 학습 목록에 포함)', newWords: [] });
                 }
 
                 const updatedVocab = [...newWordsToAdd, ...currentVocab];
