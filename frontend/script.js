@@ -478,6 +478,35 @@ function filterSetButtons() {
     }, 300); 
 }
 
+// 찾기 & 덱추가 기능 함수추가 
+async function searchAndAddWords() {
+    const searchInput = document.getElementById('wordSearchInput');
+    const searchTerm = searchInput.value.trim();
+
+    if (!searchTerm) {
+        alert('검색어를 입력해주세요.');
+        return;
+    }
+
+    const success = await postRequest('/userdata/search-and-add', { searchTerm });
+
+    if (success) {
+        // 성공 시, 서버로부터의 정확한 메시지를 받아오기 위해 응답을 JSON으로 파싱
+        const response = await fetch(`${API_BASE_URL}/userdata/search-and-add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ searchTerm })
+        });
+        const result = await response.json();
+        alert(result.message);
+        
+        searchInput.value = ''; // 검색창 비우기
+        await initializeApp(); // 화면 전체 새로고침
+    } else {
+        alert('단어 검색 및 추가에 실패했습니다.');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
     const batchAddBtn = document.querySelector('.add-btn');

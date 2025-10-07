@@ -71,6 +71,7 @@
         .stepper-btn { width: 30px; height: 30px; border: 1px solid #ccc; background-color: white; border-radius: 50%; font-size: 1.2rem; cursor: pointer; }
         .stepper-label { font-weight: 600; color: #333; }
         #thresholdValue { width: 60px; padding: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 1.1rem; text-align: center; font-weight: bold; color: #e67e22; }
+        .word-search-btn { background: linear-gradient(135deg, #a29bfe, #6c5ce7); }
     </style>
 </head>
 <body>
@@ -135,6 +136,16 @@
                 <button class="btn shuffle-btn" id="shuffleBtn" onclick="shuffleWords()">순서 섞기</button>
             </div>
         </div>
+        <div class="action-group">
+            <h4>전체 단어 검색 & 학습 목록에 추가</h4>
+            <div class="range-input-group">
+                <input type="search" id="wordSearchInput" class="search-input" style="margin-bottom: 0;" placeholder="학습할 단어 검색 (예: 중심)...">
+                <button class="btn word-search-btn" onclick="searchAndAddWords()">
+                    <i class="fas fa-search-plus"></i> 검색 & 추가
+                </button>
+            </div>
+        </div>
+
         <div class="vocabulary-list" id="vocabularyList"></div>
         <div class="footer"><p><i class="fas fa-heart"></i> by rebuild</p></div>
     </div>
