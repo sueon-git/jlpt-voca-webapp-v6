@@ -250,20 +250,20 @@ async function startServer() {
                 matchingSets.forEach(doc => {
                     const lines = doc.content.split('\n');
                     lines.forEach((line, index) => {
-                        if (line.toLowerCase().includes(searchTerm.toLowerCase())) {
-                            const parts = line.split(',').map(part => part.trim());
-                            if (parts.length >= 4) {
-                                const title = parts[0];
-                                const restOfParts = parts.slice(1);
-                                foundWords.push({ 
-                                    id: crypto.randomUUID(), 
-                                    japanese: title, 
-                                    parts: restOfParts,
-                                    source: { set: doc._id, index: index + 1 } // 위치 정보 추가
-                                });
-                            }
-                        }
-                    });
+                        if (line.toLowerCase().includes(searchTerm.toLowerCase())) {
+                            const parts = line.split(',').map(part => part.trim());
+                            if (parts.length >= 2) { 
+                                const title = parts[0];
+                                const restOfParts = parts.slice(1);
+                                foundWords.push({ 
+                                    id: crypto.randomUUID(), 
+                                    japanese: title, 
+                                    parts: restOfParts,
+                                    source: { set: doc._id, index: index + 1 }
+                                });
+                            }
+                        }
+                    });
                 });
 
                 const userDoc = await userdata.findOne({ _id: 'main' });
