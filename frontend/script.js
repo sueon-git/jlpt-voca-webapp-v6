@@ -139,14 +139,18 @@ async function addRange() {
 
 function preserveOpenCards(callback) {
     const openCardIds = new Set();
-    document.querySelectorAll('.vocab-item.revealed').forEach(el => {
-        openCardIds.add(el.id);
+    document.querySelectorAll('.vocab-details.show').forEach(el => {
+        openCardIds.add(el.id.replace('details-', ''));
     });
+
     callback();
+
     openCardIds.forEach(id => {
         const itemElement = document.getElementById(id);
-        if (itemElement) {
-            itemElement.classList.add('revealed');
+        const detailsElement = document.getElementById(`details-${id}`);
+        if (itemElement && detailsElement) {
+            itemElement.classList.add('revealed'); // 테두리 색상 복구
+            detailsElement.classList.add('show');   // ✨ 내용 부분 펼치기 복구
         }
     });
 }
