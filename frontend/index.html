@@ -127,6 +127,9 @@
                             <i class="fas fa-sort-numeric-down"></i> 시행횟수 정렬
                         </button>
                     </div>
+                    <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+                        <button class="btn shuffle-btn" id="shuffleBtn" onclick="shuffleWords()">순서 섞기</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -141,7 +144,6 @@
                 <button class="btn random-btn" onclick="getRandomWords()">
                     <i class="fas fa-random"></i> 랜덤 추출
                 </button>
-                <button class="btn shuffle-btn" id="shuffleBtn" onclick="shuffleWords()">순서 섞기</button>
             </div>
 
             <div class="filter-controls">
@@ -158,11 +160,24 @@
         </div>
         <div class="action-group">
             <h4>전체 단어 검색 & 학습 목록에 추가</h4>
-            <div class="range-input-group">
-                <input type="search" id="wordSearchInput" class="search-input" style="margin-bottom: 0;" placeholder="학습할 단어 검색 (예: 중심)...">
-                <button class="btn word-search-btn" onclick="searchAndAddWords()">
-                    <i class="fas fa-search-plus"></i> 검색 & 추가
-                </button>
+            <div class="range-input-group" style="justify-content: space-between; align-items: center;">
+                <div style="flex: 1;">
+                    <input type="search" id="wordSearchInput" class="search-input" style="margin-bottom: 0;" placeholder="학습할 단어 검색 (예: 중심)...">
+                </div>
+                <div style="display: flex; gap: 10px; margin-left: auto;">
+                    <!-- 검색 버튼 -->
+                    <button class="btn word-search-btn" onclick="searchAndAddWords()">
+                        <i class="fas fa-search-plus"></i> 검색 & 추가
+                    </button>
+                    <!-- 오답률 정렬 버튼 -->
+                    <button class="btn sort-btn" id="sortBtn" onclick="sortByIncorrectRate()">
+                        <i class="fas fa-percentage"></i> 오답률 정렬
+                    </button>
+                    <!-- 시행횟수 정렬 버튼 -->
+                    <button class="btn attempt-sort-btn" id="attemptSortBtn" onclick="sortByAttemptCount()">
+                        <i class="fas fa-sort-numeric-down"></i> 시행횟수 정렬
+                    </button>
+                </div>
             </div>
         </div>
 
