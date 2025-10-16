@@ -62,7 +62,7 @@ async function startServer() {
                 let belowThresholdCount = 0;
 
                 lines.forEach(line => {
-                    const parts = line.split(',').map(p => p.trim());
+                    const parts = line.split(';').map(p => p.trim());
                     if (parts.length < 1) return;
 
                     const title = parts[0];
@@ -119,7 +119,7 @@ async function startServer() {
                 const wordsFromSet = [];
                 
                 lines.forEach(line => {
-                    const parts = line.split(',').map(part => part.trim());
+                    const parts = line.split(';').map(part => part.trim());
                     if (parts.length >= 4) {
                         const title = parts[0];
                         const restOfParts = parts.slice(1);
@@ -206,7 +206,7 @@ async function startServer() {
                 targetSets.forEach(setDoc => {
                     const lines = setDoc.content.split('\n').filter(line => line.trim());
                     lines.forEach(line => {
-                        const parts = line.split(',').map(part => part.trim());
+                        const parts = line.split(';').map(part => part.trim());
                         if (parts.length >= 2) {
                             const title = parts[0];
                             const restOfParts = parts.slice(1);
@@ -272,7 +272,7 @@ async function startServer() {
                     // 각 줄(line) 전체 내용에서 검색어가 포함되어 있는지 확인
                     lines.forEach((line, index) => {
                         if (line.toLowerCase().includes(searchTerm.toLowerCase())) {
-                            const parts = line.split(',').map(part => part.trim());
+                            const parts = line.split(';').map(part => part.trim());
                             // 쉼표가 1개 이상 있어서 최소 2개의 파트가 나오면 카드로 인정
                             if (parts.length >= 2) { 
                                 const title = parts[0];
