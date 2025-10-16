@@ -144,7 +144,14 @@ async function startServer() {
         app.post('/api/correct/update', async (req, res) => {
             const { word, count } = req.body;
             try {
-                await userdata.updateOne({ _id: 'main' }, { $set: { [`data.correctCounts.${word}`]: count } }, { upsert: true });
+                const userDoc = await userdata.findOne({ _id: 'main' });
+                const correctCounts = userDoc?.data?.correctCounts || {};
+                correctCounts[word] = count; // 자바스크립트 객체에서 키 업데이트
+        
+                await userdata.updateOne(
+                    { _id: 'main' },
+                    { $set: { 'data.correctCounts': correctCounts } } // 전체 객체를 통째로 덮어쓰기
+                );
                 res.status(200).json({ message: '정답 횟수 업데이트 성공' });
             } catch (e) { res.status(500).json({ message: "정답 횟수 업데이트 중 오류" }); }
         });
@@ -152,7 +159,14 @@ async function startServer() {
         app.post('/api/incorrect/update', async (req, res) => {
             const { word, count } = req.body;
             try {
-                await userdata.updateOne({ _id: 'main' }, { $set: { [`data.incorrectCounts.${word}`]: count } }, { upsert: true });
+                const userDoc = await userdata.findOne({ _id: 'main' });
+                const incorrectCounts = userDoc?.data?.incorrectCounts || {};
+                incorrectCounts[word] = count; // 자바스크립트 객체에서 키 업데이트
+
+                await userdata.updateOne(
+                    { _id: 'main' },
+                    { $set: { 'data.incorrectCounts': incorrectCounts } } // 전체 객체를 통째로 덮어쓰기
+                );
                 res.status(200).json({ message: '오답 횟수 업데이트 성공' });
             } catch (e) { res.status(500).json({ message: "오답 횟수 업데이트 중 오류" }); }
         });
