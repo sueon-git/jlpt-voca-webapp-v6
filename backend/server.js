@@ -120,7 +120,7 @@ async function startServer() {
                 
                 lines.forEach(line => {
                     const parts = line.split(';').map(part => part.trim());
-                    if (parts.length >= 4) {
+                    if (parts.length >= 1) {
                         const title = parts[0];
                         const restOfParts = parts.slice(1);
                         wordsFromSet.push({ id: crypto.randomUUID(), japanese: title, parts: restOfParts });
@@ -221,7 +221,7 @@ async function startServer() {
                     const lines = setDoc.content.split('\n').filter(line => line.trim());
                     lines.forEach(line => {
                         const parts = line.split(';').map(part => part.trim());
-                        if (parts.length >= 2) {
+                        if (parts.length >= 1) {
                             const title = parts[0];
                             const restOfParts = parts.slice(1);
                             allWords.push({ id: crypto.randomUUID(), japanese: title, parts: restOfParts });
@@ -288,7 +288,7 @@ async function startServer() {
                         if (line.toLowerCase().includes(searchTerm.toLowerCase())) {
                             const parts = line.split(';').map(part => part.trim());
                             // 쉼표가 1개 이상 있어서 최소 2개의 파트가 나오면 카드로 인정
-                            if (parts.length >= 2) { 
+                            if (parts.length >= 1) { 
                                 const title = parts[0];
                                 const restOfParts = parts.slice(1);
                                 foundWords.push({ 
