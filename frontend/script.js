@@ -329,10 +329,14 @@ async function getRandomWords() {
     const countInput = document.getElementById('randomCount');
     const startInput = document.getElementById('randomStartNum');
     const endInput = document.getElementById('randomEndNum');
+    const maxAttemptInput = document.getElementById('maxAttemptCount');
+    const maxAccuracyInput = document.getElementById('maxAccuracyRate');
     
     const count = parseInt(countInput.value);
-    const start = parseInt(startInput.value);
-    const end = parseInt(endInput.value);
+    const start = startInput.value ? parseInt(startInput.value) : null;
+    const end = endInput.value ? parseInt(endInput.value) : null;
+    const maxAttempts = maxAttemptInput.value ? parseInt(maxAttemptInput.value) : null;
+    const maxAccuracy = maxAccuracyInput.value ? parseInt(maxAccuracyInput.value) : null;
 
     if (!count || count < 1) {
         alert('추출할 단어의 개수를 1 이상으로 입력해주세요.');
@@ -341,23 +345,43 @@ async function getRandomWords() {
     
     let confirmMessage = `현재 학습 목록을 지우고, `;
     if (start && end) {
-        confirmMessage += `${start} ~ ${end}번 세트에서 ${count}개의 단어를 무작위로 가져옵니다.`;
+        confirmMessage += `${start}~${end}번 세트에서 `;
     } else {
-        confirmMessage += `전체 DB에서 ${count}개의 단어를 무작위로 가져옵니다.`;
+        confirmMessage += `전체 DB에서 `;
     }
-    confirmMessage += ` 계속하시겠습니까?`;
+
+    let filters = [];
+    if (maxAttempts !== null) filters.push(`시행 ${maxAttempts}회 이하`);
+    if (maxAccuracy !== null) filters.push(`정답률 ${maxAccuracy}% 이하`);
+
+    if (filters.length > 0) {
+        confirmMessage += `[${filters.join(', ')}] 조건의 단어 중 `;
+    }
+
+    confirmMessage += `${count}개를 무작위로 가져옵니다. 계속하시겠습니까?`;
 
     if (!confirm(confirmMessage)) {
         return;
     }
 
-    const success = await postRequest('/userdata/random-set', { count, start, end });
+    const requestBody = { count, start, end, maxAttempts, maxAccuracy };
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/userdata/random-set`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        });
 
-    if (success) {
-        alert(`${count}개의 랜덤 단어를 불러왔습니다!`);
-        await initializeApp();
-    } else {
-        alert('랜덤 단어를 불러오는 데 실패했습니다. (범위 내에 세트가 없는지 확인해주세요)');
+        const result = await response.json(); // 서버 응답을 항상 json으로 받음
+        alert(result.message);
+
+        if (response.ok) {
+            await initializeApp();
+        }
+    } catch (error) {
+        alert('랜덤 단어 추출 중 오류가 발생했습니다.');
+        console.error(error);
     }
 }
 
