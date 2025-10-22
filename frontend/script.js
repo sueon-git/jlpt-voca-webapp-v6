@@ -373,11 +373,13 @@ async function getRandomWords() {
             body: JSON.stringify(requestBody)
         });
 
-        const result = await response.json(); // 서버 응답을 항상 json으로 받음
-        alert(result.message);
-
         if (response.ok) {
+            // 성공 시에는 알림 없이 바로 화면을 갱신
             await initializeApp();
+        } else {
+            // 실패 시에만 서버로부터 받은 메시지를 알림창으로
+            const result = await response.json();
+            alert(result.message);
         }
     } catch (error) {
         alert('랜덤 단어 추출 중 오류가 발생했습니다.');
